@@ -6,13 +6,13 @@ function mainParser() {
     "(Module [body ((Expr [value (BinOp [left (Constant [value 5] [kind #f])] [op (Add)] [right (Constant [value 4] [kind #f])])]))] [type_ignores ()])";
   console.log("Input string: " + stringInput);
 
-  let res = SExpressionParser3(stringInput, 0, []);
+  let res = SExpressionParser(stringInput, 0, []);
   console.log("\nResult");
   console.log(res[2] + "\n");
   console.log(JSON.stringify(res[3], null, 2));
 }
 
-function SExpressionParser3(inputString, index, parenStack) {
+function SExpressionParser(inputString, index, parenStack) {
   let start = new SExp();
 
   // Return if the index is larger than the input string
@@ -79,7 +79,7 @@ function getAllSubExpressions(inputString, index, parenStack, listExpressions) {
     return [inputString, index, [...parenStack], [...listExpressions]];
   }
 
-  let res = SExpressionParser3(inputString, index, parenStack);
+  let res = SExpressionParser(inputString, index, parenStack);
   index = res[0];
   inputString = res[1];
   listExpressions = [...listExpressions, res[3]];
@@ -90,87 +90,6 @@ function getAllSubExpressions(inputString, index, parenStack, listExpressions) {
     [...res[2]],
     [...listExpressions]);
 }
-
-// function SExpressionParser(inputString, index, parenStack) {
-//   if (index >= inputString.length) return [index, [...parenStack]];
-
-//   console.log("\n NEW ENTRY");
-//   let start = new SExp();
-//   parens = nextCharNotParen(inputString, index, []);
-//   parenStack = [...parenStack, ...parens];
-//   start.paren = [...start.paren, ...parens];
-//   inputString = inputString.slice(start.paren.length);
-//   inputString = inputString.slice(nextCharNotWhiteSpace(inputString, 0));
-//   index = 0;
-//   console.log("\nAfter slice and char: " + inputString);
-
-//   atomRes = getAllAtoms(inputString, index, []);
-//   console.log("Atoms: " + atomRes[1]);
-//   index += atomRes[0];
-//   start.symbol = [...start.symbol, ...atomRes[1]];
-
-//   index = nextCharNotWhiteSpace(inputString, index);
-//   inputString = inputString.slice(index);
-//   index = 0;
-//   console.log("index, char :" + index + " - " + inputString[index]);
-//   console.log(start);
-
-//   if (checkCloseParens(inputString[index])) {
-//     // if (
-//     //   (inputString[index] === "]" &&
-//     //     parenStack[parenStack.length - 1] === "[") ||
-//     //   (inputString[index] === ")" && parenStack[parenStack.length - 1] === "(")
-//     // ) {
-//     parenStack = parenStack.filter((elm, ind) => ind === parenStack.length - 1);
-//     start.paren = [...start.paren, inputString[index]];
-//     console.log(parenStack);
-//     index = index + 1;
-//     // } else {
-//     //   let res = SExpressionParser(inputString, index, [...parenStack]);
-//     //   index = res[0];
-//     //   parenStack = res[1];
-//     //   start.rest = [...start.rest, res[2]];
-//     // }
-//   }
-
-//   index = nextCharNotWhiteSpace(inputString, index);
-//   inputString = inputString.slice(index);
-//   index = 0;
-//   if (checkOpenParens(inputString[index])) {
-//     parenStack = [...parenStack, inputString[index]];
-//     let res = getAllSubExpressions(inputString, index, [...parenStack], []);
-//     index = res[0];
-//     inputString = res[1];
-//     parenStack = res[2];
-//     start.rest = [...start.rest, ...res[3]];
-//   }
-
-//   return [index, inputString, [...parenStack], start];
-// }
-
-// function getAllSubExpressions(inputString, index, parenStack, listExpressions) {
-//   if (
-//     (inputString[index] === "]" && parenStack[parenStack.length - 1] === "[") ||
-//     (inputString[index] === ")" && parenStack[parenStack.length - 1] === "(")
-//   ) {
-//     return [index, inputString, [...parenStack], [...listExpressions]];
-//   }
-
-//   let res = SExpressionParser3(inputString, index, parenStack);
-//   listExpressions = [...listExpressions, res[3]];
-//   index = res[0];
-//   inputString = res[1];
-//   if (res[2] === undefined) {
-//     return [index, inputString, [res[2]], [...listExpressions]];
-//   }
-
-//   return getAllSubExpressions(
-//     inputString,
-//     index + 1,
-//     [...res[2]],
-//     [...listExpressions]
-//   );
-// }
 
 function getAllAtoms(inputString, index, listAtoms) {
   // console.log(inputString);
@@ -245,16 +164,6 @@ function nextCharNotWhiteSpace(inputString, index) {
     return index;
   }
   return nextCharNotWhiteSpace(inputString, index + 1);
-}
-
-function nextCharNotParen(inputString, index, stack) {
-  if (!checkOpenParens(inputString[index])) {
-    return stack;
-  }
-  return nextCharNotParen(inputString, index + 1, [
-    ...stack,
-    inputString[index],
-  ]);
 }
 
 function checkOpenParens(character) {
