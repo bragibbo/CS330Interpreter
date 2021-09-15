@@ -8,7 +8,7 @@ function mainParser() {
 
   let res = SExpressionParser3(stringInput, 0, []);
   console.log("\nResult");
-  console.log(res[2]);
+  console.log(res[2] + "\n");
   console.log(JSON.stringify(res[3], null, 2));
 }
 
@@ -24,9 +24,9 @@ function SExpressionParser3(inputString, index, parenStack) {
     console.log("Atoms: " + atomRes[1]);
     index = atomRes[0];
     start.symbol = [...start.symbol, ...atomRes[1]];
-    console.log(start.symbol)
+    console.log(start.symbol);
   }
-  
+
   // Add the paren or bracket to the stack if is the current char
   if (checkOpenParens(inputString[index])) {
     console.log("Push onto stack : " + inputString[index]);
@@ -50,31 +50,45 @@ function SExpressionParser3(inputString, index, parenStack) {
       );
       parenStack = parenStack.filter((el, ind) => ind < parenStack.length - 1);
       console.log(parenStack);
+      // index = nextCharNotWhiteSpace(inputString, index);
+      // inputString = inputString.slice(index+1);
+      // index = 0;
       return [index, inputString, [...parenStack], start];
     }
   }
 
   // Get all corresponding SubExpressions
-  let res = getAllSubExpressions(inputString, index + 1, [...parenStack], []);
-  index = res[0];
-  inputString = res[1];
+  // index = nextCharNotWhiteSpace(inputString, index);
+  // inputString = inputString.slice(index+1);
+  // index = 0;
+  let res = getAllSubExpressions(inputString, index+1, [...parenStack], []);
+  index = res[1];
+  inputString = res[0];
   parenStack = res[2];
-  start.rest = [start.rest, ...res[3]]
+  start.rest = [start.rest, ...res[3]];
 
   return [index, inputString, [...parenStack], start];
 }
 
 function getAllSubExpressions(inputString, index, parenStack, listExpressions) {
-  if (parenStack.length === 0) {
-    return [index, inputString, [...parenStack], [...listExpressions]]
+     if (
+        (inputString[index] === "]" && parenStack[parenStack.length - 1] === "[") ||
+        (inputString[index] === ")" && parenStack[parenStack.length - 1] === "(") || parenStack.length === 0
+     ) {
+       parenStack = parenStack.filter((el, ind) => ind < (parenStack.length - 1))
+    return [inputString, index, [...parenStack], [...listExpressions]];
   }
 
   let res = SExpressionParser3(inputString, index, parenStack);
   index = res[0];
   inputString = res[1];
-  listExpressions = [...listExpressions, res[3]]
+  listExpressions = [...listExpressions, res[3]];
 
-  return getAllSubExpressions(inputString, index + 1, [...res[2]], [...listExpressions]);
+  return getAllSubExpressions(
+    inputString,
+    index +1,
+    [...res[2]],
+    [...listExpressions]);
 }
 
 // function SExpressionParser(inputString, index, parenStack) {
@@ -173,7 +187,7 @@ function getAllAtoms(inputString, index, listAtoms) {
   if (atom === null) {
     return [index, listAtoms];
   }
-  index += atom.length
+  index += atom.length;
   // console.log(atom);
   listAtoms = [...listAtoms, atom];
   index = nextCharNotWhiteSpace(inputString, index);
@@ -253,7 +267,6 @@ function checkCloseParens(character) {
 
 class SExp {
   constructor() {
-    this.paren = [];
     this.symbol = [];
     this.rest = [];
   }
