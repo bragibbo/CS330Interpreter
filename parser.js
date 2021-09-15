@@ -6,59 +6,51 @@ function mainParser() {
     "(Module [body ((Expr [value (BinOp [left (Constant [value 5] [kind #f])] [op (Add)] [right (Constant [value 4] [kind #f])])]))] [type_ignores ()])";
   console.log("Input string: " + stringInput);
 
-  let res = SExpressionParser(stringInput, 0, [], []);
-  console.log(JSON.stringify(res[2]));
+  let res = SExpressionParser(stringInput, 0, []);
+  console.log("\nResult")
+  console.log(JSON.stringify(res[2], null, 2));
 }
 
-function SExpressionParser(inputString, index, parenStack, total) {
+function SExpressionParser(inputString, index, parenStack) {
   if (index >= inputString.length) return [index, [...parenStack]];
-  let newIndex = nextCharNotWhiteSpace(inputString, index);
-  let oldIndex = newIndex;
 
-  // console.log("index, char :" + index + " - " + inputString[index]);
-  let struct = {}
+  console.log("\n NEW ENTRY")
+  let start = new SExp()
+  start.paren = [...start.paren, nextCharNotParen(inputString, index, [])]
+  inputString = inputString.slice(start.paren.length)
+  inputString = inputString.slice(nextCharNotWhiteSpace(inputString, 0));
+  index = 0
+  console.log("\nAfter slice and char: " + inputString)
 
+  atomRes = getAllAtoms(inputString, index, []);
+  console.log("Atoms: " + atomRes[1]);
+  index += atomRes[0]
+  // let res = SExpressionParser(inputString, index, [...parenStack]);
+  // index = res[0];
+  // parenStack = res[1];
+  start.symbol = [...start.symbol, atomRes[1]]
 
-  if (checkOpenParens(inputString[newIndex])) {
-    parenStack.push(inputString[newIndex]);
+  index = nextCharNotWhiteSpace(inputString, index);
+  inputString = inputString.slice(index)
+  index = 0
+  console.log("index, char :" + index + " - " + inputString[index]);
+  console.log(start)
+
+  if
+
+  if (checkOpenParens(inputString[index])) {
+    parenStack.push(inputString[index]);
     let res = SExpressionParser(
       inputString,
-      newIndex + 1,
-      [...parenStack],
-      total
+      index,
+      [...parenStack]
     );
-    newIndex = res[0];
+    index = res[0];
     parenStack = res[1];
+    start.rest = res[2]
   }
 
-  const atom = AtomParser(inputString, newIndex);
-  if (atom != null) {
-    console.log("Atoms: " + atom);
-    newIndex += atom.length;
-    newIndex = nextCharNotWhiteSpace(inputString, newIndex);
-    let res = SExpressionParser(inputString, newIndex, [...parenStack], total);
-    newIndex = res[0];
-    parenStack = res[1];
-  }
-
-  if (checkCloseParens(inputString[newIndex])) {
-    parenStack = parenStack.filter((elm, ind) => ind < parenStack.length - 1);
-    if (parenStack.length !== 0) {
-      let res = SExpressionParser(
-        inputString,
-        newIndex + 1,
-        [...parenStack],
-        total
-      );
-      newIndex = res[0];
-      parenStack = res[1];
-    }
-  }
-  let finalIndex = newIndex
-
-  // total.push(inputString.substring(oldIndex, finalIndex + 1))
-
-  return [newIndex, [...parenStack], [...total]];
+  return [index, [...parenStack], start];
 }
 
 function getNextParen(inputString, index) {
@@ -67,6 +59,25 @@ function getNextParen(inputString, index) {
   }
 
   return getNextParen(inputString, index)
+}
+
+function getAllAtoms(inputString, index, listAtoms) {
+  console.log(inputString)
+  if (checkCloseParens(inputString[index]) || checkOpenParens(inputString[index])) {
+    return [index, listAtoms]
+  }
+  
+  index = nextCharNotWhiteSpace(inputString, index)
+  console.log(index)
+  atom = AtomParser(inputString, index)
+  if (atom === null) {
+    return [index, listAtoms]
+  }
+  console.log(atom)
+  listAtoms = [...listAtoms, atom]
+  index = nextCharNotWhiteSpace(inputString, index)
+  console.log(index)
+  return getAllAtoms(inputString, index + atom.length, listAtoms)
 }
 
 function AtomParser(inputString, index) {
@@ -114,6 +125,21 @@ function parseFullSymbol(inputString, index) {
 }
 
 function nextCharNotWhiteSpace(inputString, index) {
+  console.log(inputString[index])
+  if (inputString[index] !== " " && index < inputString.length) {
+    return index;
+  }
+  return nextCharNotWhiteSpace(inputString, index + 1);
+}
+
+function nextCharNotParen(inputString, index, stack) {
+  if (!checkOpenParens(inputString[index])) {
+    return stack
+  }
+  return nextCharNotParen(inputString, index + 1, [...stack, inputString[index]]);
+}
+
+function nextCharParen(inputString, index) {
   if (inputString[index] !== " " && index < inputString.length) {
     return index;
   }
@@ -126,6 +152,13 @@ function checkOpenParens(character) {
 
 function checkCloseParens(character) {
   return character === ")" || character === "]";
+}
+
+class SExp {
+  constructor(symbol, rest, paren) {
+    this.paren = []
+    this.symbol = []
+  }
 }
 
 mainParser();
