@@ -1,0 +1,259 @@
+{
+  "paren": [
+    "("
+  ],
+  "symbol": [
+    "Module"
+  ],
+  "rest": [
+    {
+      "paren": [
+        "["
+      ],
+      "symbol": [
+        "body"
+      ],
+      "rest": [
+        {
+          "paren": [
+            "(",
+            "("
+          ],
+          "symbol": [
+            "Expr"
+          ],
+          "rest": [
+            {
+              "paren": [
+                "["
+              ],
+              "symbol": [
+                "value"
+              ],
+              "rest": [
+                {
+                  "paren": [
+                    "("
+                  ],
+                  "symbol": [
+                    "BinOp"
+                  ],
+                  "rest": [
+                    {
+                      "paren": [
+                        "["
+                      ],
+                      "symbol": [
+                        "left"
+                      ],
+                      "rest": [
+                        {
+                          "paren": [
+                            "("
+                          ],
+                          "symbol": [
+                            "Constant"
+                          ],
+                          "rest": [
+                            {
+                              "paren": [
+                                "[",
+                                "]"
+                              ],
+                              "symbol": [
+                                "value",
+                                "5"
+                              ],
+                              "rest": [
+                                {
+                                  "paren": [
+                                    "[",
+                                    "]"
+                                  ],
+                                  "symbol": [
+                                    "kind",
+                                    "#f"
+                                  ],
+                                  "rest": []
+                                }
+                              ]
+                            },
+                            {
+                              "paren": [
+                                ")"
+                              ],
+                              "symbol": [],
+                              "rest": []
+                            },
+                            {
+                              "paren": [
+                                "]"
+                              ],
+                              "symbol": [],
+                              "rest": [
+                                {
+                                  "paren": [
+                                    "["
+                                  ],
+                                  "symbol": [
+                                    "op"
+                                  ],
+                                  "rest": [
+                                    {
+                                      "paren": [
+                                        "(",
+                                        ")"
+                                      ],
+                                      "symbol": [
+                                        "Add"
+                                      ],
+                                      "rest": []
+                                    },
+                                    {
+                                      "paren": [
+                                        "]"
+                                      ],
+                                      "symbol": [],
+                                      "rest": [
+                                        {
+                                          "paren": [
+                                            "["
+                                          ],
+                                          "symbol": [
+                                            "right"
+                                          ],
+                                          "rest": [
+                                            {
+                                              "paren": [
+                                                "("
+                                              ],
+                                              "symbol": [
+                                                "Constant"
+                                              ],
+                                              "rest": [
+                                                {
+                                                  "paren": [
+                                                    "[",
+                                                    "]"
+                                                  ],
+                                                  "symbol": [
+                                                    "value",
+                                                    "4"
+                                                  ],
+                                                  "rest": [
+                                                    {
+                                                      "paren": [
+                                                        "[",
+                                                        "]"
+                                                      ],
+                                                      "symbol": [
+                                                        "kind",
+                                                        "#f"
+                                                      ],
+                                                      "rest": []
+                                                    }
+                                                  ]
+                                                },
+                                                {
+                                                  "paren": [
+                                                    ")"
+                                                  ],
+                                                  "symbol": [],
+                                                  "rest": []
+                                                },
+                                                {
+                                                  "paren": [
+                                                    "]"
+                                                  ],
+                                                  "symbol": [],
+                                                  "rest": []
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "paren": [
+                                                ")"
+                                              ],
+                                              "symbol": [],
+                                              "rest": []
+                                            },
+                                            {
+                                              "paren": [
+                                                "]"
+                                              ],
+                                              "symbol": [],
+                                              "rest": []
+                                            },
+                                            {
+                                              "paren": [
+                                                ")"
+                                              ],
+                                              "symbol": [],
+                                              "rest": []
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "paren": [
+                                            ")"
+                                          ],
+                                          "symbol": [],
+                                          "rest": []
+                                        },
+                                        {
+                                          "paren": [
+                                            "]"
+                                          ],
+                                          "symbol": [],
+                                          "rest": [
+                                            {
+                                              "paren": [
+                                                "["
+                                              ],
+                                              "symbol": [
+                                                "type_ignores"
+                                              ],
+                                              "rest": [
+                                                {
+                                                  "paren": [
+                                                    "(",
+                                                    ")"
+                                                  ],
+                                                  "symbol": [],
+                                                  "rest": []
+                                                }
+                                              ]
+                                            },
+                                            null
+                                          ]
+                                        },
+                                        null
+                                      ]
+                                    },
+                                    null
+                                  ]
+                                },
+                                null
+                              ]
+                            },
+                            null
+                          ]
+                        },
+                        null
+                      ]
+                    },
+                    null
+                  ]
+                },
+                null
+              ]
+            },
+            null
+          ]
+        },
+        null
+      ]
+    },
+    null
+  ]
+}
