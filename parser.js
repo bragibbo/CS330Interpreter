@@ -50,29 +50,31 @@ function SExpressionParser3(inputString, index, parenStack) {
       );
       parenStack = parenStack.filter((el, ind) => ind < parenStack.length - 1);
       console.log(parenStack);
-      return [index, inputString, [...parenStack]];
+      return [index, inputString, [...parenStack], start];
     }
   }
 
   // Get all corresponding SubExpressions
-  let res = getAllSubExpressions(inputString, index + 1, parenStack);
+  let res = getAllSubExpressions(inputString, index + 1, [...parenStack], []);
   index = res[0];
   inputString = res[1];
   parenStack = res[2];
+  start.rest = [start.rest, ...res[3]]
 
-  return [index, inputString, [...parenStack]];
+  return [index, inputString, [...parenStack], start];
 }
 
-function getAllSubExpressions(inputString, index, parenStack) {
+function getAllSubExpressions(inputString, index, parenStack, listExpressions) {
   if (parenStack.length === 0) {
-    return [index, inputString, [...parenStack]]
+    return [index, inputString, [...parenStack], [...listExpressions]]
   }
 
   let res = SExpressionParser3(inputString, index, parenStack);
   index = res[0];
   inputString = res[1];
+  listExpressions = [...listExpressions, res[3]]
 
-  return getAllSubExpressions(inputString, index + 1, [...res[2]]);
+  return getAllSubExpressions(inputString, index + 1, [...res[2]], [...listExpressions]);
 }
 
 // function SExpressionParser(inputString, index, parenStack) {
