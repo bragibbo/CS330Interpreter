@@ -7,65 +7,65 @@ module.exports.SExpressionParser = (stringToParse) => {
 
 function parse(parenStack, str) {
   if (str.length === 0) {
-    return parenStack
+    return parenStack;
   }
-  
+
   // Check for open paren
   const newParenStack = checkOpenParens(str[0])
     ? parse([...parenStack, new SExprParse(str[0], [])], str.slice(1).trim())
     : parenStack;
 
   // Take off as many atoms as you want
-  atomRes = getAllAtoms(str, 0, []);
-  let newStr = atomRes[0];
+  // atomRes[0] === inputString, atomRes[1] === atom list
+  const atomRes = getAllAtoms(str, 0, []);
 
-  let nextParenStack = [];
-  if (newStr[0] === "]" && newParenStack.at(-1).paren === "[") {
-    let tmpSExpr = new SExprBracket([
-      ...newParenStack.at(-1).listSExpr,
-      ...atomRes[1],
+  // res[0] === parenStack, res[1] === inputString
+  const res = wrapSExpression(newParenStack, atomRes[0], atomRes[1]);
+
+  if (res[0].length <= 1) {
+    return res[0];
+  }
+
+  return parse(res[0], res[1].trim());
+}
+
+function wrapSExpression(parenStack, str, atoms) {
+  if (
+    (str[0] === "]" && parenStack.at(-1).paren === "[") ||
+    (str[0] === ")" && parenStack.at(-1).paren === "(")
+  ) {
+    let tmpSExpr = getSExprByType(str[0], [
+      ...parenStack.at(-1).listSExpr,
+      ...atoms,
     ]);
-    let tmpSExpr2 = new SExprParse(newParenStack.at(-2).paren, [
-      ...newParenStack.at(-2).listSExpr,
+    let tmpSExpr2 = new SExprParse(parenStack.at(-2).paren, [
+      ...parenStack.at(-2).listSExpr,
       tmpSExpr,
     ]);
-    let tmpStack2 = newParenStack.filter(
+    let tmpStack2 = parenStack.filter(
       (elm, ind) =>
-        ind !== newParenStack.length - 2 && ind !== newParenStack.length - 1
+        ind !== parenStack.length - 2 && ind !== parenStack.length - 1
     );
-    nextParenStack = [...tmpStack2, tmpSExpr2];
-    newStr = newStr.trim().slice(1).trim();
-  } else if (newStr[0] === ")" && newParenStack.at(-1).paren === "(") {
-    let tmpSExpr = new SExprParen([
-      ...newParenStack.at(-1).listSExpr,
-      ...atomRes[1],
-    ]);
-    let tmpSExpr2 = new SExprParse(newParenStack.at(-2).paren, [
-      ...newParenStack.at(-2).listSExpr,
-      tmpSExpr,
-    ]);
-    let tmpStack2 = newParenStack.filter(
-      (elm, ind) =>
-        ind !== newParenStack.length - 2 && ind !== newParenStack.length - 1
-    );
-    nextParenStack = [...tmpStack2, tmpSExpr2];
-    newStr = newStr.trim().slice(1).trim();
+
+    return [[...tmpStack2, tmpSExpr2], str.trim().slice(1).trim()];
   } else {
-    let tmpSExpr = new SExprParse(newParenStack.at(-1).paren, [
-      ...newParenStack.at(-1).listSExpr,
-      ...atomRes[1],
+    let tmpSExpr = new SExprParse(parenStack.at(-1).paren, [
+      ...parenStack.at(-1).listSExpr,
+      ...atoms,
     ]);
-    let tmpStack2 = newParenStack.filter(
-      (elm, ind) => ind !== newParenStack.length - 1
+    let tmpStack2 = parenStack.filter(
+      (elm, ind) => ind !== parenStack.length - 1
     );
-    nextParenStack = [...tmpStack2, tmpSExpr];
+    return [[...tmpStack2, tmpSExpr], str];
   }
+}
 
-  if (nextParenStack.length <= 1) {
-    return nextParenStack;
+function getSExprByType(type, listExpr) {
+  if (type === "]") {
+    return new SExprBracket([...listExpr]);
+  } else {
+    return new SExprParen([...listExpr]);
   }
-
-  return parse(nextParenStack, newStr.trim());
 }
 
 function getAllAtoms(str, index, listAtoms) {
