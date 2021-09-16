@@ -25,6 +25,10 @@ const {
 // unaryop	 	::=	 	(UAdd)
 //              |	 	(USub)
 module.exports.PythonModuleParser = (sExpressions) => {
+  if (!sExpressions) {
+    throw Error("Unable to parse S Expression list - value: " + sExpressions)
+  }
+    
   return new AST(parseMod(sExpressions));
 };
 

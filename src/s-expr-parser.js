@@ -6,6 +6,10 @@ module.exports.SExpressionParser = (stringToParse) => {
 };
 
 function parse(parenStack, str) {
+  if (str.length === 0) {
+    return parenStack
+  }
+  
   // Check for open paren
   const newParenStack = checkOpenParens(str[0])
     ? parse([...parenStack, new SExprParse(str[0], [])], str.slice(1).trim())
