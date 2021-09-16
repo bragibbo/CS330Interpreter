@@ -1,4 +1,4 @@
-const AtomParser = require("../parser").AtomParser
+const AtomParser = require("../s-expr-parser").AtomParser
 
 function TestParser() {
   let res = AtomParser(45, 0)
