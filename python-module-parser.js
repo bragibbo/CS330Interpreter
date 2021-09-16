@@ -9,10 +9,28 @@ const {
   AST,
 } = require("./types");
 
+// Grammer:
+// mod	 	    ::=	 	(Module [body (expr_stmt)] [type_ignores ()])
+//  
+// expr_stmt 	::=	 	(Expr [value expr])
+// 
+// expr	      ::= 	(BinOp [left expr] [op operator] [right expr])
+//              |	 	(UnaryOp [op unaryop] [operand expr])
+//              |	 	(Constant [value int] [kind #f])
+// 
+// operator	 	::=	 	(Add)
+//              |	 	(Sub)
+//              |	 	(Mult)
+// 
+// unaryop	 	::=	 	(UAdd)
+//              |	 	(USub)
 module.exports.PythonModuleParser = (sExpressions) => {
   return new AST(parseMod(sExpressions));
 };
 
+
+// Grammer:
+// mod  ::=  (Module [body (expr_stmt)] [type_ignores ()])
 function parseMod(sExpr) {
   if (
     sExpr.constructor.name === "SExprParen" &&
@@ -33,8 +51,9 @@ function parseMod(sExpr) {
   throw new Error("Unable to Parse Module: " + sExpr);
 }
 
+// Grammer:
+// expr_stmt  ::=  (Expr [value expr])
 function parseExprStmt(sExpr) {
-  console.log(sExpr);
   if (
     sExpr.constructor.name === "SExprParen" &&
     sExpr.listSExpr.length === 2 &&
@@ -52,6 +71,10 @@ function parseExprStmt(sExpr) {
   throw new Error("Unable to Parse ExprStmt: " + sExpr);
 }
 
+// Grammer:
+// expr	  ::=	 	(BinOp [left expr] [op operator] [right expr])
+//          |	 	(UnaryOp [op unaryop] [operand expr])
+//          |	 	(Constant [value int] [kind #f])
 function parseExpr(sExpr) {
   if (sExpr.constructor.name === "SExprParen" && sExpr.listSExpr.length > 0) {
     switch (sExpr.listSExpr[0].value) {
@@ -114,6 +137,10 @@ function parseExpr(sExpr) {
   throw new Error("Unable to parse Expr: " + sExpr);
 }
 
+// Grammer:
+// operator  ::=	 	(Add)
+//             |	 	(Sub)
+//             |	 	(Mult)
 function parseOperator(sExpr) {
   if (sExpr.listSExpr.length === 1 && sExpr.listSExpr[0].constructor.name === "Atom") { 
     switch (sExpr.listSExpr[0].value) {
@@ -129,6 +156,9 @@ function parseOperator(sExpr) {
   throw new Error("Unable to parse Op: " + sExpr)
 }
 
+// Grammer: 
+// unaryop 	::= 	(UAdd)
+//            |	 	(USub)
 function parseUnaryOp(sExpr) {
   if (sExpr.listSExpr.length === 1 && sExpr.listSExpr[0].constructor.name === "Atom") {
     switch (sExpr.listSExpr[0].value) {
