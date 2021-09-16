@@ -4,114 +4,72 @@ function mainParser() {
   // const stringInput = fs.readFileSync(0).toString();
   const stringInput =
     "(Module [body ((Expr [value (BinOp [left (Constant [value 5] [kind #f])] [op (Add)] [right (Constant [value 4] [kind #f])])]))] [type_ignores ()])";
-  console.log("Input string: " + stringInput);
 
-  let res = SExpressionParser(stringInput, 0, []);
-  console.log("\nResult");
-  console.log(res[2] + "\n");
-  console.log(JSON.stringify(res[3], null, 2));
+  let parsedString = SExpressionParser(stringInput, 0, []);
+  console.log(JSON.stringify(parsedString, null, 2));
 }
 
-function SExpressionParser(inputString, index, parenStack) {
-  let start = new SExp();
-
-  // Return if the index is larger than the input string
-  if (index >= inputString.length)
-    return [index, inputString, [...parenStack], start];
-
-  atomRes = getAllAtoms(inputString, index, []);
-  if (atomRes[1].length !== 0) {
-    console.log("Atoms: " + atomRes[1]);
-    index = atomRes[0];
-    start.symbol = [...start.symbol, ...atomRes[1]];
-    console.log(start.symbol);
-  }
-
-  // Add the paren or bracket to the stack if is the current char
-  if (checkOpenParens(inputString[index])) {
-    console.log("Push onto stack : " + inputString[index]);
-    parenStack = [...parenStack, inputString[index]];
-    console.log(parenStack);
-  }
-
-  // console.log(inputString[index])
-  // Pop bracket or paren off stack if matches current char type
-  if (checkCloseParens(inputString[index])) {
-    if (
-      (inputString[index] === "]" &&
-        parenStack[parenStack.length - 1] === "[") ||
-      (inputString[index] === ")" && parenStack[parenStack.length - 1] === "(")
-    ) {
-      console.log(
-        "Current brace : " +
-          inputString[index] +
-          " pop off " +
-          parenStack[parenStack.length - 1]
-      );
-      parenStack = parenStack.filter((el, ind) => ind < parenStack.length - 1);
-      console.log(parenStack);
-      // index = nextCharNotWhiteSpace(inputString, index);
-      // inputString = inputString.slice(index+1);
-      // index = 0;
-      return [index, inputString, [...parenStack], start];
-    }
-  }
-
-  // Get all corresponding SubExpressions
-  // index = nextCharNotWhiteSpace(inputString, index);
-  // inputString = inputString.slice(index+1);
-  // index = 0;
-  let res = getAllSubExpressions(inputString, index+1, [...parenStack], []);
-  index = res[1];
-  inputString = res[0];
-  parenStack = res[2];
-  start.rest = [start.rest, ...res[3]];
-
-  return [index, inputString, [...parenStack], start];
+function SExpressionParser(stringToParse) {
+  let expression = parse([new SExprParse("d", [])], stringToParse);
+  return expression[0].listSExpr[0]
 }
 
-function getAllSubExpressions(inputString, index, parenStack, listExpressions) {
-     if (
-        (inputString[index] === "]" && parenStack[parenStack.length - 1] === "[") ||
-        (inputString[index] === ")" && parenStack[parenStack.length - 1] === "(") || parenStack.length === 0
-     ) {
-       parenStack = parenStack.filter((el, ind) => ind < (parenStack.length - 1))
-    return [inputString, index, [...parenStack], [...listExpressions]];
+function parse(parenStack, inputString) {
+  // Check for open paren
+  const newParenStack = checkOpenParens(inputString[0])
+    ? parse(
+        [...parenStack, new SExprParse(inputString[0], [])],
+        inputString.slice(1).trim()
+      )
+    : parenStack;
+
+  // Take off as many atoms as you want
+  atomRes = getAllAtoms(inputString, 0, []);
+  let newInputString = atomRes[0];
+
+  let nextParenStack = [];
+  if (newInputString[0] === "]" && newParenStack.at(-1).paren === "[") {
+    let tmpSExpr = new SExprBracket([...newParenStack.at(-1).listSExpr, ...atomRes[1]]);
+    let tmpSExpr2 = new SExprParse(newParenStack.at(-2).paren, [...newParenStack.at(-2).listSExpr, tmpSExpr])
+    let tmpStack2 = newParenStack.filter((elm, ind) => ind !== newParenStack.length - 2 && ind !== newParenStack.length - 1)
+    nextParenStack = [...tmpStack2, tmpSExpr2];
+    newInputString = newInputString.trim().slice(1).trim()
+
+  } else if (newInputString[0] === ")" && newParenStack.at(-1).paren === "(") {
+    let tmpSExpr = new SExprParen([...newParenStack.at(-1).listSExpr, ...atomRes[1]]);
+    let tmpSExpr2 = new SExprParse(newParenStack.at(-2).paren, [...newParenStack.at(-2).listSExpr, tmpSExpr])
+    let tmpStack2 = newParenStack.filter((elm, ind) => ind !== newParenStack.length - 2 && ind !== newParenStack.length - 1)
+    nextParenStack = [...tmpStack2, tmpSExpr2];
+    newInputString = newInputString.trim().slice(1).trim()
+
+  } else {
+    let tmpSExpr = new SExprParse(newParenStack.at(-1).paren, [...newParenStack.at(-1).listSExpr, ...atomRes[1]]);
+    let tmpStack2 = newParenStack.filter((elm, ind) => ind !== newParenStack.length - 1)
+    nextParenStack = [...tmpStack2, tmpSExpr];
   }
 
-  let res = SExpressionParser(inputString, index, parenStack);
-  index = res[0];
-  inputString = res[1];
-  listExpressions = [...listExpressions, res[3]];
+  if (nextParenStack.length <= 1) {
+    return nextParenStack;
+  }
 
-  return getAllSubExpressions(
-    inputString,
-    index +1,
-    [...res[2]],
-    [...listExpressions]);
+  return parse(nextParenStack, newInputString.trim());
 }
 
 function getAllAtoms(inputString, index, listAtoms) {
-  // console.log(inputString);
   if (
     checkCloseParens(inputString[index]) ||
     checkOpenParens(inputString[index])
   ) {
-    return [index, listAtoms];
+    return [inputString, [...listAtoms]];
   }
 
-  index = nextCharNotWhiteSpace(inputString, index);
-  // console.log("Current index" + index);
-  atom = AtomParser(inputString, index);
+  atom = AtomParser(inputString.trim(), 0);
   if (atom === null) {
-    return [index, listAtoms];
+    return [inputString, [...listAtoms]];
   }
-  index += atom.length;
-  // console.log(atom);
-  listAtoms = [...listAtoms, atom];
-  index = nextCharNotWhiteSpace(inputString, index);
-  // console.log(index);
-  return getAllAtoms(inputString, index, listAtoms);
+  newlistAtoms = [...listAtoms, atom];
+  let sliceIndex = index + atom.length;
+  return getAllAtoms(inputString.slice(sliceIndex).trim(), 0, newlistAtoms);
 }
 
 function AtomParser(inputString, index) {
@@ -158,14 +116,6 @@ function parseFullSymbol(inputString, index) {
   return inputString[index] + parseFullSymbol(inputString, index + 1);
 }
 
-function nextCharNotWhiteSpace(inputString, index) {
-  // console.log(inputString[index]);
-  if (inputString[index] !== " " && index < inputString.length) {
-    return index;
-  }
-  return nextCharNotWhiteSpace(inputString, index + 1);
-}
-
 function checkOpenParens(character) {
   return character === "(" || character === "[";
 }
@@ -174,11 +124,35 @@ function checkCloseParens(character) {
   return character === ")" || character === "]";
 }
 
-class SExp {
-  constructor() {
-    this.symbol = [];
-    this.rest = [];
+class SExprParse {
+  constructor(paren, listSExpr) {
+    if (!arguments.length) {
+      this.paren = null;
+      this.listSExpr = [];
+    } else {
+      this.paren = paren;
+      this.listSExpr = listSExpr;
+    }
   }
 }
+
+class SExprBracket {
+  constructor(sexpr) {
+    if (!arguments.length) {
+      this.listSExpr = [];
+    } else {
+      this.listSExpr = sexpr;
+    }
+  }
+}
+
+class SExprParen {
+  constructor(sexpr) {
+    if (!arguments.length) {
+      this.listSExpr = [];
+    } else {
+      this.listSExpr = sexpr;
+    }
+  }}
 
 mainParser();
