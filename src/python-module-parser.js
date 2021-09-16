@@ -167,9 +167,9 @@ function parseUnaryOp(sExpr) {
   if (sExpr.listSExpr.length === 1 && sExpr.listSExpr[0].constructor.name === "Atom") {
     switch (sExpr.listSExpr[0].value) {
       case "UAdd":
-        return new UnaryOperator(type);
+        return new UnaryOperator(sExpr.listSExpr[0].value);
       case "USub":
-        return new UnaryOperator(type);
+        return new UnaryOperator(sExpr.listSExpr[0].value);
     }
   }
 

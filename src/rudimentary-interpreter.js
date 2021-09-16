@@ -1,4 +1,4 @@
-const { Operator } = require("./types");
+const { Operator, UnaryOp } = require("./types");
 
 // Grammer:
 // mod	 	    ::=	 	(Module [body (expr_stmt)] [type_ignores ()])
@@ -17,7 +17,8 @@ const { Operator } = require("./types");
 //              |	 	(USub)
 module.exports.RudimentaryInterpreter = (ast) => {
   if (ast.constructor.name === "AST") {
-    return evalModule(ast.module);
+    const answer = evalModule(ast.module)
+    return `(value ${answer})`;
   }
   
   throw new Error("RudInterp - Error interpreting ast: " + JSON.stringify(ast))
@@ -41,10 +42,10 @@ function evalExpr(expr) {
   switch (expr.constructor.name) {
     case "BinOp":
       const left = evalExpr(expr.left);
-      const op = evalOperator(expr.op);
+      const binOp = evalOperator(expr.op);
       const right = evalExpr(expr.right);
 
-      switch (op) {
+      switch (binOp) {
         case "+":
           return left + right;
         case "-":
@@ -52,10 +53,20 @@ function evalExpr(expr) {
         case "*":
           return left * right;
         default:
-          throw new Error("RudInterp - Error invalid operator: " + JSON.stringify(op));
+          throw new Error("RudInterp - Error invalid bin operator: " + JSON.stringify(op));
       }
     case "UnaryOp":
-      return;
+      const unOp = evalUnary(expr.op)
+      const operand = evalExpr(expr.operand)
+
+      switch (unOp) {
+        case "+":
+          return 1 * operand
+        case "-":
+          return -1 * operand
+        default:
+          throw new Error("RudInterp - Error invalid un operator: " + JSON.stringify(op));
+      }
     case "Constant":
       return !isNaN(expr.value) ? Number(expr.value) : expr.value;
   }
@@ -78,5 +89,13 @@ function evalOperator(operator) {
 }
 
 function evalUnary(unaryOp) {
+  if (unaryOp.constructor.name === "UnaryOperator") {
+    switch (unaryOp.type) {
+      case "UAdd":
+        return "+"
+      case "USub":
+        return "-"
+    }
+  }
   throw new Error("RudInterp - Error interpreting unary op: " + JSON.stringify(unaryOp));
 }

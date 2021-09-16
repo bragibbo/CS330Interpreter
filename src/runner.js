@@ -17,7 +17,7 @@ function main() {
     const ast = PythonModuleParser(parsedSExressionList);
     const answer = RudimentaryInterpreter(ast)
 
-    console.log(`(value ${answer})`);
+    console.log(answer);
   } catch (e) {
     console.error("Error interpreting program: " + e);
   }
