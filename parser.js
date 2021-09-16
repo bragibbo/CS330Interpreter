@@ -11,36 +11,36 @@ function mainParser() {
 
 function SExpressionParser(stringToParse) {
   let expression = parse([new SExprParse("d", [])], stringToParse);
-  return expression[0].listSExpr[0]
+  return expression[0].listSExpr[0].listSExpr
 }
 
-function parse(parenStack, inputString) {
+function parse(parenStack, str) {
   // Check for open paren
-  const newParenStack = checkOpenParens(inputString[0])
+  const newParenStack = checkOpenParens(str[0])
     ? parse(
-        [...parenStack, new SExprParse(inputString[0], [])],
-        inputString.slice(1).trim()
+        [...parenStack, new SExprParse(str[0], [])],
+        str.slice(1).trim()
       )
     : parenStack;
 
   // Take off as many atoms as you want
-  atomRes = getAllAtoms(inputString, 0, []);
-  let newInputString = atomRes[0];
+  atomRes = getAllAtoms(str, 0, []);
+  let newStr = atomRes[0];
 
   let nextParenStack = [];
-  if (newInputString[0] === "]" && newParenStack.at(-1).paren === "[") {
+  if (newStr[0] === "]" && newParenStack.at(-1).paren === "[") {
     let tmpSExpr = new SExprBracket([...newParenStack.at(-1).listSExpr, ...atomRes[1]]);
     let tmpSExpr2 = new SExprParse(newParenStack.at(-2).paren, [...newParenStack.at(-2).listSExpr, tmpSExpr])
     let tmpStack2 = newParenStack.filter((elm, ind) => ind !== newParenStack.length - 2 && ind !== newParenStack.length - 1)
     nextParenStack = [...tmpStack2, tmpSExpr2];
-    newInputString = newInputString.trim().slice(1).trim()
+    newStr = newStr.trim().slice(1).trim()
 
-  } else if (newInputString[0] === ")" && newParenStack.at(-1).paren === "(") {
+  } else if (newStr[0] === ")" && newParenStack.at(-1).paren === "(") {
     let tmpSExpr = new SExprParen([...newParenStack.at(-1).listSExpr, ...atomRes[1]]);
     let tmpSExpr2 = new SExprParse(newParenStack.at(-2).paren, [...newParenStack.at(-2).listSExpr, tmpSExpr])
     let tmpStack2 = newParenStack.filter((elm, ind) => ind !== newParenStack.length - 2 && ind !== newParenStack.length - 1)
     nextParenStack = [...tmpStack2, tmpSExpr2];
-    newInputString = newInputString.trim().slice(1).trim()
+    newStr = newStr.trim().slice(1).trim()
 
   } else {
     let tmpSExpr = new SExprParse(newParenStack.at(-1).paren, [...newParenStack.at(-1).listSExpr, ...atomRes[1]]);
@@ -52,38 +52,38 @@ function parse(parenStack, inputString) {
     return nextParenStack;
   }
 
-  return parse(nextParenStack, newInputString.trim());
+  return parse(nextParenStack, newStr.trim());
 }
 
-function getAllAtoms(inputString, index, listAtoms) {
+function getAllAtoms(str, index, listAtoms) {
   if (
-    checkCloseParens(inputString[index]) ||
-    checkOpenParens(inputString[index])
+    checkCloseParens(str[index]) ||
+    checkOpenParens(str[index])
   ) {
-    return [inputString, [...listAtoms]];
+    return [str, [...listAtoms]];
   }
 
-  atom = AtomParser(inputString.trim(), 0);
+  atom = AtomParser(str.trim(), 0);
   if (atom === null) {
-    return [inputString, [...listAtoms]];
+    return [str, [...listAtoms]];
   }
-  newlistAtoms = [...listAtoms, atom];
-  let sliceIndex = index + atom.length;
-  return getAllAtoms(inputString.slice(sliceIndex).trim(), 0, newlistAtoms);
+  newlistAtoms = [...listAtoms, new Atom(...atom)];
+  let sliceIndex = index + atom[1].length;
+  return getAllAtoms(str.slice(sliceIndex).trim(), 0, newlistAtoms);
 }
 
 function AtomParser(inputString, index) {
   if (!isNaN(inputString[index])) {
-    return parseFullNumber(inputString, index);
+    return ["number", parseFullNumber(inputString, index)];
   } else if (inputString[index] === '"') {
-    return parseFullString(inputString, index);
+    return ["string", parseFullString(inputString, index)];
   } else if (inputString[index] === "#" && inputString[index + 1] === "f") {
-    return "#f";
+    return ["boolean", "#f"];
   } else if (
     !checkCloseParens(inputString[index]) &&
     !checkOpenParens(inputString[index])
   ) {
-    return parseFullSymbol(inputString, index);
+    return ["symbol", parseFullSymbol(inputString, index)];
   }
 
   return null;
@@ -153,6 +153,14 @@ class SExprParen {
     } else {
       this.listSExpr = sexpr;
     }
-  }}
+  }
+}
+
+class Atom {
+  constructor(type, value) {
+    this.type = type
+    this.value = value
+  }
+}
 
 mainParser();
