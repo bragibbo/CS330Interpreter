@@ -5,12 +5,12 @@ const RudimentaryInterpreter =
   require("../rudimentary-interpreter").RudimentaryInterpreter;
 
 module.exports.RunRudInterpTests = () => {
-  testRud1()
-  testRud2()
-  testRud3()
-  testRud4()
-  testRud5()
-  testRud6()
+  testRud1();
+  testRud2();
+  testRud3();
+  testRud4();
+  testRud5();
+  testRud6();
 };
 
 function testRud1() {
@@ -26,9 +26,9 @@ function testRud1() {
   console.log("Returned: " + answer);
   console.log("Expected: " + expected);
   if (expected === answer) {
-    console.log("Test Passed : testRud1");
+    console.log("\u{01b}[32mTest Passed\033[m : testRud1");
   } else {
-    throw new Error("Test Failed : testRud1");
+    console.log("\u{01b}[31mTest Failed\033[m : testRud1");
   }
   console.log("End Test : testRud1\n");
 }
@@ -46,9 +46,9 @@ function testRud2() {
   console.log("Returned: " + answer);
   console.log("Expected: " + expected);
   if (expected === answer) {
-    console.log("Test Passed : testRud2");
+    console.log("\u{01b}[32mTest Passed\033[m : testRud2");
   } else {
-    throw new Error("Test Failed : testRud2");
+    console.log("\u{01b}[31mTest Failed\033[m : testRud2");
   }
   console.log("End Test : testRud2\n");
 }
@@ -66,9 +66,9 @@ function testRud3() {
   console.log("Returned: " + answer);
   console.log("Expected: " + expected);
   if (expected === answer) {
-    console.log("Test Passed : testRud3");
+    console.log("\u{01b}[32mTest Passed\033[m : testRud3");
   } else {
-    console.log("Test Failed : testRud3");
+    console.log("\u{01b}[31mTest Failed\033[m : testRud3");
   }
   console.log("End Test : testRud3\n");
 }
@@ -86,9 +86,9 @@ function testRud4() {
   console.log("Returned: " + answer);
   console.log("Expected: " + expected);
   if (expected === answer) {
-    console.log("Test Passed : testRud4");
+    console.log("\u{01b}[32mTest Passed\033[m : testRud4");
   } else {
-    console.log("Test Failed : testRud4");
+    console.log("\u{01b}[31mTest Failed\033[m : testRud4");
   }
   console.log("End Test : testRud4\n");
 }
@@ -106,9 +106,9 @@ function testRud5() {
   console.log("Returned: " + answer);
   console.log("Expected: " + expected);
   if (expected === answer) {
-    console.log("Test Passed : testRud5");
+    console.log("\u{01b}[32mTest Passed\033[m : testRud5");
   } else {
-    console.log("Test Failed : testRud5");
+    console.log("\u{01b}[31mTest Failed\033[m : testRud5");
   }
   console.log("End Test : testRud5\n");
 }
@@ -126,9 +126,9 @@ function testRud6() {
   console.log("Returned: " + answer);
   console.log("Expected: " + expected);
   if (expected === answer) {
-    console.log("Test Passed : testRud6");
+    console.log("\u{01b}[32mTest Passed\033[m : testRud6");
   } else {
-    console.log("Test Failed : testRud6");
+    console.log("\u{01b}[31mTest Failed\033[m : testRud6");
   }
   console.log("End Test : testRud6\n");
 }

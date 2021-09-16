@@ -22,9 +22,9 @@ function testEntireModule1() {
   console.log("Returned: " + ast);
   console.log("Expected: " + expected);
   if (expected === ast) {
-    console.log("Test Passed : testEntireModule1");
+    console.log("\u{01b}[32mTest Passed\033[m : testEntireModule1");
   } else {
-    throw new Error("Test Failed : testEntireModule1");
+    throw new Error("\u{01b}[31mTest Failed\033[m : testEntireModule1");
   }
   console.log("End Test : testEntireModule1\n");
 }
@@ -41,9 +41,9 @@ function testEntireModule2() {
   console.log("Returned: " + ast);
   console.log("Expected: " + expected);
   if (expected === ast) {
-    console.log("Test Passed : testEntireModule2");
+    console.log("\u{01b}[32mTest Passed\033[m : testEntireModule2");
   } else {
-    throw new Error("Test Failed : testEntireModule2");
+    throw new Error("\u{01b}[31mTest Failed\033[m : testEntireModule2");
   }
   console.log("End Test : testEntireModule2\n");
 }
@@ -61,9 +61,9 @@ function testEntireModule3() {
   console.log("Returned: " + ast);
   console.log("Expected: " + expected);
   if (expected === ast) {
-    console.log("Test Passed : testEntireModule3");
+    console.log("\u{01b}[32mTest Passed\033[m : testEntireModule3");
   } else {
-    throw new Error("Test Failed : testEntireModule3");
+    throw new Error("\u{01b}[31mTest Failed\033[m : testEntireModule3");
   }
   console.log("End Test : testEntireModule3\n");
 }
@@ -72,7 +72,8 @@ function testEntireModule4() {
   console.log("\nStart Test : testEntireModule4");
   const stringInput =
     "(Module [body ((Expr [value (UnaryOp [op (USub)] [operand (Constant [value 1] [kind #f])])]))] [type_ignores ()])";
-  const expected = "{\"module\":{\"exprStmt\":{\"expr\":{\"op\":{\"type\":\"USub\"},\"operand\":{\"value\":\"1\",\"kind\":\"#f\"}}}}}";
+  const expected =
+    '{"module":{"exprStmt":{"expr":{"op":{"type":"USub"},"operand":{"value":"1","kind":"#f"}}}}}';
 
   const parsed = SExpressionParser(stringInput);
   const ast = JSON.stringify(PythonModuleParser(parsed));
@@ -80,9 +81,9 @@ function testEntireModule4() {
   console.log("Returned: " + ast);
   console.log("Expected: " + expected);
   if (expected === ast) {
-    console.log("Test Passed : testEntireModule4");
+    console.log("\u{01b}[32mTest Passed\033[m : testEntireModule4");
   } else {
-    console.log("Test Failed : testEntireModule4");
+    console.log("\u{01b}[31mTest Failed\033[m : testEntireModule4");
   }
   console.log("End Test : testEntireModule4\n");
 }

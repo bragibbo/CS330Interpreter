@@ -11,27 +11,26 @@ const {
 
 // Grammer:
 // mod	 	    ::=	 	(Module [body (expr_stmt)] [type_ignores ()])
-//  
+//
 // expr_stmt 	::=	 	(Expr [value expr])
-// 
+//
 // expr	      ::= 	(BinOp [left expr] [op operator] [right expr])
 //              |	 	(UnaryOp [op unaryop] [operand expr])
 //              |	 	(Constant [value int] [kind #f])
-// 
+//
 // operator	 	::=	 	(Add)
 //              |	 	(Sub)
 //              |	 	(Mult)
-// 
+//
 // unaryop	 	::=	 	(UAdd)
 //              |	 	(USub)
 module.exports.PythonModuleParser = (sExpressions) => {
   if (!sExpressions) {
-    throw Error("Unable to parse S Expression list - value: " + sExpressions)
+    throw Error("Unable to parse S Expression list - value: " + sExpressions);
   }
-    
+
   return new AST(parseMod(sExpressions));
 };
-
 
 // Grammer:
 // mod  ::=  (Module [body (expr_stmt)] [type_ignores ()])
@@ -132,7 +131,10 @@ function parseExpr(sExpr) {
           sExpr.listSExpr[2].listSExpr[0].constructor.name === "Atom" &&
           sExpr.listSExpr[2].listSExpr[0].value === "kind"
         ) {
-          return new Constant(sExpr.listSExpr[1].listSExpr[1].value, sExpr.listSExpr[2].listSExpr[1].value);
+          return new Constant(
+            sExpr.listSExpr[1].listSExpr[1].value,
+            sExpr.listSExpr[2].listSExpr[1].value
+          );
         }
         break;
     }
@@ -146,7 +148,10 @@ function parseExpr(sExpr) {
 //             |	 	(Sub)
 //             |	 	(Mult)
 function parseOperator(sExpr) {
-  if (sExpr.listSExpr.length === 1 && sExpr.listSExpr[0].constructor.name === "Atom") { 
+  if (
+    sExpr.listSExpr.length === 1 &&
+    sExpr.listSExpr[0].constructor.name === "Atom"
+  ) {
     switch (sExpr.listSExpr[0].value) {
       case "Add":
         return new Operator(sExpr.listSExpr[0].value);
@@ -157,14 +162,17 @@ function parseOperator(sExpr) {
     }
   }
 
-  throw new Error("Unable to parse Op: " + sExpr)
+  throw new Error("Unable to parse Op: " + sExpr);
 }
 
-// Grammer: 
+// Grammer:
 // unaryop 	::= 	(UAdd)
 //            |	 	(USub)
 function parseUnaryOp(sExpr) {
-  if (sExpr.listSExpr.length === 1 && sExpr.listSExpr[0].constructor.name === "Atom") {
+  if (
+    sExpr.listSExpr.length === 1 &&
+    sExpr.listSExpr[0].constructor.name === "Atom"
+  ) {
     switch (sExpr.listSExpr[0].value) {
       case "UAdd":
         return new UnaryOperator(sExpr.listSExpr[0].value);
@@ -173,5 +181,5 @@ function parseUnaryOp(sExpr) {
     }
   }
 
-  throw new Error("Unable to parse UnaryOp: " + sExpr)
+  throw new Error("Unable to parse UnaryOp: " + sExpr);
 }

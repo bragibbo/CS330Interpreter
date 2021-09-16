@@ -1,7 +1,8 @@
 const fs = require("fs");
 const SExpressionParser = require("./s-expr-parser").SExpressionParser;
 const PythonModuleParser = require("./python-module-parser").PythonModuleParser;
-const RudimentaryInterpreter = require("./rudimentary-interpreter").RudimentaryInterpreter
+const RudimentaryInterpreter =
+  require("./rudimentary-interpreter").RudimentaryInterpreter;
 const TestRunner = require("./tests/testRunner.js").TestRunner;
 
 function main() {
@@ -15,9 +16,9 @@ function main() {
 
     const parsedSExressionList = SExpressionParser(stringInput, 0, []);
     const ast = PythonModuleParser(parsedSExressionList);
-    const answer = RudimentaryInterpreter(ast)
+    const answer = RudimentaryInterpreter(ast);
 
-    console.log(answer);
+    console.log("\n" + answer);
   } catch (e) {
     console.error("Error interpreting program: " + e);
   }
