@@ -1,5 +1,3 @@
-const { Operator, UnaryOp } = require("./types");
-
 // Grammer:
 // mod	 	    ::=	 	(Module [body (expr_stmt)] [type_ignores ()])
 //
@@ -16,11 +14,10 @@ const { Operator, UnaryOp } = require("./types");
 // unaryop	 	::=	 	(UAdd)
 //              |	 	(USub)
 module.exports.RudimentaryInterpreter = (ast) => {
-  if (ast.constructor.name === "AST") {
+  if (ast.constructor.name === "CoreAST") {
     const answer = evalModule(ast.module);
     return `(value ${answer})`;
   }
-
   throw new Error("RudInterp - Error interpreting ast: " + JSON.stringify(ast));
 };
 
@@ -52,27 +49,11 @@ function evalExpr(expr) {
       switch (binOp) {
         case "+":
           return left + right;
-        case "-":
-          return left - right;
         case "*":
           return left * right;
         default:
           throw new Error(
             "RudInterp - Error invalid bin operator: " + JSON.stringify(op)
-          );
-      }
-    case "UnaryOp":
-      const unOp = evalUnary(expr.op);
-      const operand = evalExpr(expr.operand);
-
-      switch (unOp) {
-        case "+":
-          return 1 * operand;
-        case "-":
-          return -1 * operand;
-        default:
-          throw new Error(
-            "RudInterp - Error invalid un operator: " + JSON.stringify(op)
           );
       }
     case "Constant":
@@ -88,28 +69,11 @@ function evalOperator(operator) {
     switch (operator.type) {
       case "Add":
         return "+";
-      case "Sub":
-        return "-";
       case "Mult":
         return "*";
     }
   }
-
   throw new Error(
     "RudInterp - Error interpreting operator: " + JSON.stringify(operator)
-  );
-}
-
-function evalUnary(unaryOp) {
-  if (unaryOp.constructor.name === "UnaryOperator") {
-    switch (unaryOp.type) {
-      case "UAdd":
-        return "+";
-      case "USub":
-        return "-";
-    }
-  }
-  throw new Error(
-    "RudInterp - Error interpreting unary op: " + JSON.stringify(unaryOp)
   );
 }

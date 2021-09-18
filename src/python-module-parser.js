@@ -6,7 +6,7 @@ const {
   Module,
   Constant,
   UnaryOperator,
-  AST,
+  SurfaceAST,
 } = require("./types");
 
 // Grammer:
@@ -29,7 +29,7 @@ module.exports.PythonModuleParser = (sExpressions) => {
     throw Error("Unable to parse S Expression list - value: " + sExpressions);
   }
 
-  return new AST(parseMod(sExpressions));
+  return new SurfaceAST(parseMod(sExpressions));
 };
 
 // Grammer:

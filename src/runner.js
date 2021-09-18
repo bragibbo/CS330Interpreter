@@ -1,9 +1,9 @@
 const fs = require("fs");
-const SExpressionParser = require("./s-expr-parser").SExpressionParser;
-const PythonModuleParser = require("./python-module-parser").PythonModuleParser;
-const RudimentaryInterpreter =
-  require("./rudimentary-interpreter").RudimentaryInterpreter;
-const TestRunner = require("./tests/testRunner.js").TestRunner;
+const { Desugar } = require("./desugar");
+const { PythonModuleParser } = require("./python-module-parser");
+const { RudimentaryInterpreter } = require("./rudimentary-interpreter");
+const { SExpressionParser } = require("./s-expr-parser");
+const { TestRunner } = require("./tests/testRunner");
 
 function main() {
   if (process.env.DEBUG_PARSER && process.env.DEBUG_PARSER === "true") {
@@ -15,8 +15,9 @@ function main() {
     const stringInput = fs.readFileSync(0).toString();
 
     const parsedSExressionList = SExpressionParser(stringInput, 0, []);
-    const ast = PythonModuleParser(parsedSExressionList);
-    const answer = RudimentaryInterpreter(ast);
+    const surfaceAST = PythonModuleParser(parsedSExressionList);
+    const coreAST = Desugar(surfaceAST);
+    const answer = RudimentaryInterpreter(coreAST);
 
     console.log("\n" + answer);
   } catch (e) {

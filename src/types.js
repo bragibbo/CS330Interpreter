@@ -41,12 +41,19 @@ class Atom {
 }
 exports.Atom = Atom;
 
-class AST {
+class SurfaceAST {
   constructor(module) {
     this.module = module;
   }
 }
-exports.AST = AST;
+exports.SurfaceAST = SurfaceAST;
+
+class CoreAST {
+  constructor(module) {
+    this.module = module;
+  }
+}
+exports.CoreAST = CoreAST;
 
 class Module {
   constructor(exprStmt) {

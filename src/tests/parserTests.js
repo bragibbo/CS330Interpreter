@@ -2,9 +2,14 @@ const { PythonModuleParser } = require("../python-module-parser");
 const { SExpressionParser } = require("../s-expr-parser");
 
 module.exports.ParserTests = () => {
+  let failedTests = 0;
   for (let i = 0; i < tests.length; i++) {
-    testParser(tests[i].input, tests[i].expected, i);
+    result = testParser(tests[i].input, tests[i].expected, i);
+    if (!result) {
+      failedTests++;
+    }
   }
+  return failedTests;
 };
 
 function testParser(input, expected, numTest) {
@@ -20,8 +25,10 @@ function testParser(input, expected, numTest) {
     console.log("\u{01b}[32mTest Passed\033[m : " + testName);
   } else {
     console.log("\u{01b}[31mTest Failed\033[m : " + testName);
+    return false;
   }
   console.log(`End Test : ${testName}\n`);
+  return true;
 }
 
 const tests = [
