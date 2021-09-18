@@ -1,7 +1,8 @@
-const ParserTests = require("./parserTests").RunParserTests;
-const RunRudInterpTests = require("./rudInterpTests").RunRudInterpTests;
+const { ParserTests } = require("./parserTests");
+const { RudimentaryInterpreterTests } = require("./rudInterpTests");
+const { DesugarTests } = require("./desugarTests");
 
 module.exports.TestRunner = () => {
   ParserTests();
-  RunRudInterpTests();
+  RudimentaryInterpreterTests();
 };

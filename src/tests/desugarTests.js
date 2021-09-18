@@ -2,14 +2,14 @@ const { PythonModuleParser } = require("../python-module-parser");
 const { RudimentaryInterpreter } = require("../rudimentary-interpreter");
 const { SExpressionParser } = require("../s-expr-parser");
 
-module.exports.RudimentaryInterpreterTests = () => {
+module.exports.DesugarTests = () => {
   for (let i = 0; i < tests.length; i++) {
-    testRudInterp(tests[i].input, tests[i].expected, i);
+    testDesugar(tests[i].input, tests[i].expected, i);
   }
 };
 
-function testRudInterp(input, expected, numTest) {
-  const testName = `Rudimentary Interpreter ${numTest}`;
+function testDesugar(input, expected, numTest) {
+  const testName = `Desugar Parser ${numTest}`;
   console.log(`\nStart Test : ${testName}`);
 
   const parsed = SExpressionParser(input);
