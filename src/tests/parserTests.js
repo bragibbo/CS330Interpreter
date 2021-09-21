@@ -55,4 +55,10 @@ const tests = [
     expected:
       '{"module":{"exprStmt":{"expr":{"op":{"type":"USub"},"operand":{"value":"1","kind":"#f"}}}}}',
   },
+  {
+    input:
+      '(Module [body ((Expr [value (Constant [value "Hello"] [kind #f])]))] [type_ignores ()])',
+    expected:
+      '{"module":{"exprStmt":{"expr":{"value":"Hello","kind":"#f"}}}}',
+  },
 ];
