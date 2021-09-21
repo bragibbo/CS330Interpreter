@@ -76,4 +76,16 @@ const tests = [
       "(Module [body ((Expr [value (BinOp [left (Constant [value 5] [kind #f])] [op (Sub)] [right (UnaryOp [op (USub)] [operand (Constant [value 3] [kind #f])])])]))] [type_ignores ()])",
     expected: "(value 8)",
   },
+  {
+    input:
+      '(Module [body ((Expr [value (Constant [value "Hello"] [kind #f])]))] [type_ignores ()])',
+    expected:
+      '(value Hello)',
+  },
+  {
+    input:
+      '(Module [body ((Expr [value (BinOp [left (Constant [value 5] [kind #f])] [op (Add)] [right (Constant [value "hello"] [kind #f])])]))] [type_ignores ()])',
+    expected:
+      '(value 5hello)',
+  },
 ];

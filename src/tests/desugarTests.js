@@ -81,4 +81,16 @@ const tests = [
     expected:
       '{"module":{"exprStmt":{"expr":{"left":{"value":"5","kind":"#f"},"op":{"type":"Add"},"right":{"left":{"value":-1,"kind":"#f"},"op":{"type":"Mult"},"right":{"left":{"value":-1,"kind":"#f"},"op":{"type":"Mult"},"right":{"value":"3","kind":"#f"}}}}}}}',
   },
+  {
+    input:
+      '(Module [body ((Expr [value (Constant [value "Hello"] [kind #f])]))] [type_ignores ()])',
+    expected:
+      '{"module":{"exprStmt":{"expr":{"value":"Hello","kind":"#f"}}}}',
+  },
+  {
+    input:
+      '(Module [body ((Expr [value (BinOp [left (Constant [value 5] [kind #f])] [op (Add)] [right (Constant [value "hello"] [kind #f])])]))] [type_ignores ()])',
+    expected:
+      '{"module":{"exprStmt":{"expr":{"left":{"value":"5","kind":"#f"},"op":{"type":"Add"},"right":{"value":"hello","kind":"#f"}}}}}',
+  },
 ];
