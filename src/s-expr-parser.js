@@ -78,7 +78,8 @@ function getAllAtoms(str, index, listAtoms) {
     return [str, [...listAtoms]];
   }
   newlistAtoms = [...listAtoms, new Atom(...atom)];
-  let sliceIndex = index + atom[1].length;
+  
+  let sliceIndex = atom[0] === "string" ? index + 2 + atom[1].length  : index + atom[1].length;
   return getAllAtoms(str.slice(sliceIndex).trim(), 0, newlistAtoms);
 }
 
@@ -112,6 +113,9 @@ function parseFullNumber(inputString, index) {
 function parseFullString(inputString, index) {
   if (inputString[index + 1] === '"') {
     return inputString[index];
+  }
+  if (inputString[index] === '"') {
+    return parseFullString(inputString, index + 1)
   }
   return inputString[index] + parseFullString(inputString, index + 1);
 }
