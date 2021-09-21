@@ -7,6 +7,7 @@ module.exports.RunParserTests = () => {
   testEntireModule2();
   testEntireModule3();
   testEntireModule4();
+  testEntireModule5();
 };
 
 function testEntireModule1() {
@@ -86,4 +87,24 @@ function testEntireModule4() {
     console.log("\u{01b}[31mTest Failed\033[m : testEntireModule4");
   }
   console.log("End Test : testEntireModule4\n");
+}
+
+function testEntireModule5() {
+  console.log("\nStart Test : testEntireModule5");
+  const stringInput =
+    '(Module [body ((Expr [value (Constant [value "Hello"] [kind #f])]))] [type_ignores ()])';
+  const expected =
+    '{"module":{"exprStmt":{"expr":{"value":"Hello","kind":"#f"}}}}';
+
+  const parsed = SExpressionParser(stringInput);
+  const ast = JSON.stringify(PythonModuleParser(parsed));
+
+  console.log("Returned: " + ast);
+  console.log("Expected: " + expected);
+  if (expected === ast) {
+    console.log("\u{01b}[32mTest Passed\033[m : testEntireModule5");
+  } else {
+    console.log("\u{01b}[31mTest Failed\033[m : testEntireModule5");
+  }
+  console.log("End Test : testEntireModule5\n");
 }

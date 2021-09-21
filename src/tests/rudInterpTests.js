@@ -11,6 +11,7 @@ module.exports.RunRudInterpTests = () => {
   testRud4();
   testRud5();
   testRud6();
+  testRud7();
 };
 
 function testRud1() {
@@ -131,4 +132,25 @@ function testRud6() {
     console.log("\u{01b}[31mTest Failed\033[m : testRud6");
   }
   console.log("End Test : testRud6\n");
+}
+
+function testRud7() {
+  console.log("\nStart Test : testRud7");
+  const stringInput =
+    '(Module [body ((Expr [value (Constant [value "Hello"] [kind #f])]))] [type_ignores ()])';
+  const expected =
+    '(value Hello)';
+
+  const parsed = SExpressionParser(stringInput);
+  const ast = PythonModuleParser(parsed);
+  const answer = RudimentaryInterpreter(ast);
+
+  console.log("Returned: " + answer);
+  console.log("Expected: " + expected);
+  if (expected === answer) {
+    console.log("\u{01b}[32mTest Passed\033[m : testRud7");
+  } else {
+    console.log("\u{01b}[31mTest Failed\033[m : testRud7");
+  }
+  console.log("End Test : testRud7\n");
 }
