@@ -9,21 +9,23 @@ const {
   UnaryOp,
 } = require("./types");
 
-// Grammer:
-// mod	 	    ::=	 	(Module [body (expr_stmt)] [type_ignores ()])
-//
-// expr_stmt 	::=	 	(Expr [value expr])
-//
-// expr	      ::= 	(BinOp [left expr] [op operator] [right expr])
-//              |	 	(UnaryOp [op unaryop] [operand expr])
-//              |	 	(Constant [value int] [kind #f])
-//
-// operator	 	::=	 	(Add)
-//              |	 	(Sub)
-//              |	 	(Mult)
-//
-// unaryop	 	::=	 	(UAdd)
-//              |	 	(USub)
+// mod	 	      ::=	 	(Module [body (fundef ... expr_stmt)] [type_ignores ()])
+// fundef	 	    ::=	 	(FunctionDef [name identifier] [args _arguments] [body (return_stmt)] [decorator_list ()] [returns #f] [type_comment #f])	 
+// _arguments	 	::=	 	(arguments [posonlyargs ()] [args (_arg)] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])
+// _arg	 	      ::=	 	(arg [arg identifier] [annotation #f] [type_comment #f]) 
+// return_stmt	::=	 	(Return [value expr]) 
+// expr_stmt	 	::=	 	(Expr [value expr]) 
+// expr	 	      ::=	 	(BinOp [left expr] [op operator] [right expr])
+//   	            |	 	(UnaryOp [op unaryop] [operand expr])
+//  	 	          |	 	(Call [func name_expr] [args (expr)] [keywords ()])
+//  	 	          |	 	(Constant [value int] [kind #f])
+//  	 	          |	 	name_expr
+// name_expr	 	::=	 	(Name [id identifier] [ctx (Load)])
+// operator	 	  ::=	 	(Add)
+//  	 	          |	 	(Sub)
+//  	 	          |	 	(Mult) 
+// unaryop	 	  ::=	 	(UAdd)
+//  	 	          |	 	(USub)
 module.exports.Desugar = (ast) => {
   if (ast.constructor.name === "SurfaceAST") {
     return new CoreAST(desugarModule(ast.module));

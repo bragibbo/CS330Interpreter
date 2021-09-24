@@ -56,11 +56,19 @@ class CoreAST {
 exports.CoreAST = CoreAST;
 
 class Module {
-  constructor(exprStmt) {
-    this.exprStmt = exprStmt;
+  constructor(body) {
+    this.body = body;
   }
 }
 exports.Module = Module;
+
+class Body {
+  constructor(exprStmt, fundef) {
+    this.exprStmt = exprStmt;
+    this.fundef = fundef;
+  }
+}
+exports.Body = Body;
 
 class ExprStamt {
   constructor(expr) {
@@ -107,3 +115,48 @@ class UnaryOperator {
   }
 }
 exports.UnaryOperator = UnaryOperator;
+
+class Fundef {
+  constructor(id, args, returnStmt) {
+    this.name = id;
+    this.arguments = args;
+    this.returnStmt = returnStmt;
+  }
+}
+exports.Fundef = Fundef;
+
+class Arguments {
+  constructor(args) {
+    this.args = args;
+  }
+}
+exports.Arguments = Arguments;
+
+class Arg {
+  constructor(id) {
+    this.identifier = id;
+  }
+}
+exports.Arg = Arg;
+
+class ReturnStmt {
+  constructor(expr) {
+    this.expr = expr;
+  }
+}
+exports.ReturnStmt = ReturnStmt;
+
+class Call {
+  constructor(nameExpr, expr) {
+    this.nameExpr = nameExpr;
+    this.expr = expr;
+  }
+}
+exports.Call = Call;
+
+class NameExpr {
+  constructor(name) {
+    this.name = name;
+  }
+}
+exports.NameExpr = NameExpr;
