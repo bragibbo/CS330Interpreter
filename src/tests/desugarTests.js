@@ -38,63 +38,63 @@ const tests = [
     input:
       "(Module [body ((Expr [value (BinOp [left (Constant [value 5] [kind #f])] [op (Add)] [right (Constant [value 4] [kind #f])])]))] [type_ignores ()])",
     expected:
-      '{"module":{"exprStmt":{"expr":{"left":{"value":"5","kind":"#f"},"op":{"type":"Add"},"right":{"value":"4","kind":"#f"}}}}}',
+      '{"module":{"body":{"exprStmt":{"expr":{"left":{"value":"5","kind":"#f"},"op":{"type":"Add"},"right":{"value":"4","kind":"#f"}}},"fundef":[]}}}',
   },
   {
     input:
       "(Module [body ((Expr [value (Constant [value 5] [kind #f])]))] [type_ignores ()])",
-    expected: '{"module":{"exprStmt":{"expr":{"value":"5","kind":"#f"}}}}',
+    expected: '{"module":{"body":{"exprStmt":{"expr":{"value":"5","kind":"#f"}},"fundef":[]}}}',
   },
   {
     input:
       "(Module [body ((Expr [value (BinOp [left (Constant [value 3] [kind #f])] [op (Add)] [right (BinOp [left (Constant [value 5] [kind #f])] [op (Mult)] [right (Constant [value 8] [kind #f])])])]))] [type_ignores ()])",
     expected:
-      '{"module":{"exprStmt":{"expr":{"left":{"value":"3","kind":"#f"},"op":{"type":"Add"},"right":{"left":{"value":"5","kind":"#f"},"op":{"type":"Mult"},"right":{"value":"8","kind":"#f"}}}}}}',
+      '{"module":{"body":{"exprStmt":{"expr":{"left":{"value":"3","kind":"#f"},"op":{"type":"Add"},"right":{"left":{"value":"5","kind":"#f"},"op":{"type":"Mult"},"right":{"value":"8","kind":"#f"}}}},"fundef":[]}}}',
   },
   {
     input:
       "(Module [body ((Expr [value (BinOp [left (BinOp [left (Constant [value 5] [kind #f])] [op (Add)] [right (Constant [value 2] [kind #f])])] [op (Mult)] [right (Constant [value 2] [kind #f])])]))] [type_ignores ()])",
     expected:
-      '{"module":{"exprStmt":{"expr":{"left":{"left":{"value":"5","kind":"#f"},"op":{"type":"Add"},"right":{"value":"2","kind":"#f"}},"op":{"type":"Mult"},"right":{"value":"2","kind":"#f"}}}}}',
+      '{"module":{"body":{"exprStmt":{"expr":{"left":{"left":{"value":"5","kind":"#f"},"op":{"type":"Add"},"right":{"value":"2","kind":"#f"}},"op":{"type":"Mult"},"right":{"value":"2","kind":"#f"}}},"fundef":[]}}}',
   },
   {
     input:
       "(Module [body ((Expr [value (BinOp [left (BinOp [left (Constant [value 4] [kind #f])] [op (Mult)] [right (Constant [value 2] [kind #f])])] [op (Sub)] [right (BinOp [left (Constant [value 1] [kind #f])] [op (Mult)] [right (BinOp [left (Constant [value 3] [kind #f])] [op (Add)] [right (Constant [value 4] [kind #f])])])])]))] [type_ignores ()])",
     expected:
-      '{"module":{"exprStmt":{"expr":{"left":{"left":{"value":"4","kind":"#f"},"op":{"type":"Mult"},"right":{"value":"2","kind":"#f"}},"op":{"type":"Add"},"right":{"left":{"value":-1,"kind":"#f"},"op":{"type":"Mult"},"right":{"left":{"value":"1","kind":"#f"},"op":{"type":"Mult"},"right":{"left":{"value":"3","kind":"#f"},"op":{"type":"Add"},"right":{"value":"4","kind":"#f"}}}}}}}}',
+      '{"module":{"body":{"exprStmt":{"expr":{"left":{"left":{"value":"4","kind":"#f"},"op":{"type":"Mult"},"right":{"value":"2","kind":"#f"}},"op":{"type":"Add"},"right":{"left":{"value":-1,"kind":"#f"},"op":{"type":"Mult"},"right":{"left":{"value":"1","kind":"#f"},"op":{"type":"Mult"},"right":{"left":{"value":"3","kind":"#f"},"op":{"type":"Add"},"right":{"value":"4","kind":"#f"}}}}}},"fundef":[]}}}',
   },
   {
     input:
       "(Module [body ((Expr [value (UnaryOp [op (USub)] [operand (Constant [value 5] [kind #f])])]))] [type_ignores ()])",
     expected:
-      '{"module":{"exprStmt":{"expr":{"left":{"value":-1,"kind":"#f"},"op":{"type":"Mult"},"right":{"value":"5","kind":"#f"}}}}}',
+      '{"module":{"body":{"exprStmt":{"expr":{"left":{"value":-1,"kind":"#f"},"op":{"type":"Mult"},"right":{"value":"5","kind":"#f"}}},"fundef":[]}}}',
   },
   {
     input:
       "(Module [body ((Expr [value (BinOp [left (Constant [value 6] [kind #f])] [op (Sub)] [right (Constant [value 4] [kind #f])])]))] [type_ignores ()])",
     expected:
-      '{"module":{"exprStmt":{"expr":{"left":{"value":"6","kind":"#f"},"op":{"type":"Add"},"right":{"left":{"value":-1,"kind":"#f"},"op":{"type":"Mult"},"right":{"value":"4","kind":"#f"}}}}}}',
+      '{"module":{"body":{"exprStmt":{"expr":{"left":{"value":"6","kind":"#f"},"op":{"type":"Add"},"right":{"left":{"value":-1,"kind":"#f"},"op":{"type":"Mult"},"right":{"value":"4","kind":"#f"}}}},"fundef":[]}}}',
   },
   {
     input:
       "(Module [body ((Expr [value (BinOp [left (Constant [value 5] [kind #f])] [op (Sub)] [right (UnaryOp [op (USub)] [operand (Constant [value 3] [kind #f])])])]))] [type_ignores ()])",
     expected:
-      '{"module":{"exprStmt":{"expr":{"left":{"value":"5","kind":"#f"},"op":{"type":"Add"},"right":{"left":{"value":-1,"kind":"#f"},"op":{"type":"Mult"},"right":{"left":{"value":-1,"kind":"#f"},"op":{"type":"Mult"},"right":{"value":"3","kind":"#f"}}}}}}}',
+      '{"module":{"body":{"exprStmt":{"expr":{"left":{"value":"5","kind":"#f"},"op":{"type":"Add"},"right":{"left":{"value":-1,"kind":"#f"},"op":{"type":"Mult"},"right":{"left":{"value":-1,"kind":"#f"},"op":{"type":"Mult"},"right":{"value":"3","kind":"#f"}}}}},"fundef":[]}}}',
   },
   {
     input:
       '(Module [body ((Expr [value (Constant [value "Hello"] [kind #f])]))] [type_ignores ()])',
     expected:
-      '{"module":{"exprStmt":{"expr":{"value":"Hello","kind":"#f"}}}}',
+      '{"module":{"body":{"exprStmt":{"expr":{"value":"Hello","kind":"#f"}},"fundef":[]}}}',
   },
   {
     input:
       '(Module [body ((Expr [value (BinOp [left (Constant [value 5] [kind #f])] [op (Add)] [right (Constant [value "hello"] [kind #f])])]))] [type_ignores ()])',
     expected:
-      '{"module":{"exprStmt":{"expr":{"left":{"value":"5","kind":"#f"},"op":{"type":"Add"},"right":{"value":"hello","kind":"#f"}}}}}',
+      '{"module":{"body":{"exprStmt":{"expr":{"left":{"value":"5","kind":"#f"},"op":{"type":"Add"},"right":{"value":"hello","kind":"#f"}}},"fundef":[]}}}',
   },
   {
     input: '(Module [body ((FunctionDef [name "test"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Name [id "x"] [ctx (Load)])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "test"] [ctx (Load)])] [args ((Constant [value 5] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
-    expected: ''
+    expected: '{"module":{"body":{"exprStmt":{"expr":{"nameExpr":{"name":"test"},"expr":{"value":"5","kind":"#f"}}},"fundef":[{"name":"test","arguments":{"args":{"identifier":"x"}},"returnStmt":{"expr":{"name":"x"}}}]}}}'
   }
 ];

@@ -1,10 +1,10 @@
 // Grammer:
 // mod	 	      ::=	 	(Module [body (fundef ... expr_stmt)] [type_ignores ()])
-// fundef	 	    ::=	 	(FunctionDef [name identifier] [args _arguments] [body (return_stmt)] [decorator_list ()] [returns #f] [type_comment #f])	 
+// fundef	 	    ::=	 	(FunctionDef [name identifier] [args _arguments] [body (return_stmt)] [decorator_list ()] [returns #f] [type_comment #f])
 // _arguments	 	::=	 	(arguments [posonlyargs ()] [args (_arg)] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])
-// _arg	 	      ::=	 	(arg [arg identifier] [annotation #f] [type_comment #f]) 
-// return_stmt	::=	 	(Return [value expr]) 
-// expr_stmt	 	::=	 	(Expr [value expr]) 
+// _arg	 	      ::=	 	(arg [arg identifier] [annotation #f] [type_comment #f])
+// return_stmt	::=	 	(Return [value expr])
+// expr_stmt	 	::=	 	(Expr [value expr])
 // expr	 	      ::=	 	(BinOp [left expr] [op operator] [right expr])
 //   	            |	 	(UnaryOp [op unaryop] [operand expr])
 //  	 	          |	 	(Call [func name_expr] [args (expr)] [keywords ()])
@@ -13,7 +13,7 @@
 // name_expr	 	::=	 	(Name [id identifier] [ctx (Load)])
 // operator	 	  ::=	 	(Add)
 //  	 	          |	 	(Sub)
-//  	 	          |	 	(Mult) 
+//  	 	          |	 	(Mult)
 // unaryop	 	  ::=	 	(UAdd)
 //  	 	          |	 	(USub)
 module.exports.RudimentaryInterpreter = (ast) => {
@@ -26,10 +26,19 @@ module.exports.RudimentaryInterpreter = (ast) => {
 
 function evalModule(mod) {
   if (mod.constructor.name === "Module") {
-    return evalExprStmt(mod.exprStmt);
+    return evalBody(mod.body);
   }
   throw new Error(
     "RudInterp - Error interpreting module: " + JSON.stringify(mod)
+  );
+}
+
+function evalBody(body) {
+  if (body.constructor.name === "Body") {
+    return evalExprStmt(body.exprStmt);
+  }
+  throw new Error(
+    "RudInterp - Error interpreting body: " + JSON.stringify(body)
   );
 }
 

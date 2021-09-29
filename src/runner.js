@@ -21,7 +21,7 @@ function main() {
 
     console.log("\n" + answer);
   } catch (e) {
-    console.error("Error interpreting program: " + e);
+    console.error(e.message);
   }
 }
 

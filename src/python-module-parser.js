@@ -62,9 +62,21 @@ function parseBody(mod) {
     mod.listSExpr[1].constructor.name === "SExprParen" &&
     mod.listSExpr[1].listSExpr.length >= 1
   ) {
+    // Verify that there are no duplicate function names
+    const funDefs = parseFunDefHelper([], mod.listSExpr[1].listSExpr, 0);
+    const duplicates = funDefs.filter(
+      (item, index) =>
+        funDefs.findIndex((el) => el.name === item.name) !== index
+    );
+    if (duplicates.length) {
+      throw new Error('(error static "duplicate function name")');
+    }
+
     return new Body(
-      parseExprStmt(mod.listSExpr[1].listSExpr[mod.listSExpr[1].listSExpr.length - 1]),
-      parseFunDefHelper([], mod.listSExpr[1].listSExpr, 0)
+      parseExprStmt(
+        mod.listSExpr[1].listSExpr[mod.listSExpr[1].listSExpr.length - 1]
+      ),
+      [...funDefs]
     );
   }
   throw new Error("Unable to parse body: " + mod);

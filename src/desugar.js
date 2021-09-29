@@ -7,14 +7,21 @@ const {
   Constant,
   UnaryOperator,
   UnaryOp,
+  Body,
+  Fundef,
+  Arg,
+  Arguments,
+  ReturnStmt,
+  NameExpr,
+  Call,
 } = require("./types");
 
 // mod	 	      ::=	 	(Module [body (fundef ... expr_stmt)] [type_ignores ()])
-// fundef	 	    ::=	 	(FunctionDef [name identifier] [args _arguments] [body (return_stmt)] [decorator_list ()] [returns #f] [type_comment #f])	 
+// fundef	 	    ::=	 	(FunctionDef [name identifier] [args _arguments] [body (return_stmt)] [decorator_list ()] [returns #f] [type_comment #f])
 // _arguments	 	::=	 	(arguments [posonlyargs ()] [args (_arg)] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])
-// _arg	 	      ::=	 	(arg [arg identifier] [annotation #f] [type_comment #f]) 
-// return_stmt	::=	 	(Return [value expr]) 
-// expr_stmt	 	::=	 	(Expr [value expr]) 
+// _arg	 	      ::=	 	(arg [arg identifier] [annotation #f] [type_comment #f])
+// return_stmt	::=	 	(Return [value expr])
+// expr_stmt	 	::=	 	(Expr [value expr])
 // expr	 	      ::=	 	(BinOp [left expr] [op operator] [right expr])
 //   	            |	 	(UnaryOp [op unaryop] [operand expr])
 //  	 	          |	 	(Call [func name_expr] [args (expr)] [keywords ()])
@@ -23,7 +30,7 @@ const {
 // name_expr	 	::=	 	(Name [id identifier] [ctx (Load)])
 // operator	 	  ::=	 	(Add)
 //  	 	          |	 	(Sub)
-//  	 	          |	 	(Mult) 
+//  	 	          |	 	(Mult)
 // unaryop	 	  ::=	 	(UAdd)
 //  	 	          |	 	(USub)
 module.exports.Desugar = (ast) => {
@@ -31,15 +38,64 @@ module.exports.Desugar = (ast) => {
     return new CoreAST(desugarModule(ast.module));
   }
 
-  throw new Error("Desurgar - Error interpreting ast: " + JSON.stringify(ast));
+  throw new Error("Desugar - Error interpreting ast: " + JSON.stringify(ast));
 };
 
 function desugarModule(mod) {
   if (mod.constructor.name === "Module") {
-    return new Module(desugarExprStmt(mod.exprStmt));
+    return new Module(desugarBody(mod.body));
   }
   throw new Error(
-    "Desurgar - Error interpreting module: " + JSON.stringify(mod)
+    "Desugar - Error interpreting module: " + JSON.stringify(mod)
+  );
+}
+
+function desugarBody(mod) {
+  if (mod.constructor.name === "Body") {
+    return new Body(desugarExprStmt(mod.exprStmt), desugarFunDef(mod.fundef));
+  }
+  throw new Error(
+    "Desugar - Error interpreting module: " + JSON.stringify(mod)
+  );
+}
+
+function desugarFunDef(listFunDef) {
+  if (listFunDef.every((el) => el.constructor.name === "Fundef")) {
+    return listFunDef.map((el) => {
+      return new Fundef(
+        el.name,
+        desugarArguments(el.arguments),
+        desugarReturnStmt(el.returnStmt)
+      );
+    });
+  }
+  throw new Error(
+    "Desugar - Error interpreting Fun def: " + JSON.stringify(listFunDef)
+  );
+}
+
+function desugarArguments(args) {
+  if (args.constructor.name === "Arguments") {
+    return new Arguments(desugarArg(args.args));
+  }
+  throw new Error(
+    "Desugar - Error interpreting Arguments: " + JSON.stringify(arguments)
+  );
+}
+
+function desugarArg(arg) {
+  if (arg.constructor.name === "Arg") {
+    return new Arg(arg.identifier);
+  }
+  throw new Error("Desurgar - Error interpreting Arg: " + JSON.stringify(arg));
+}
+
+function desugarReturnStmt(returnStmt) {
+  if (returnStmt.constructor.name === "ReturnStmt") {
+    return new ReturnStmt(desugarExpr(returnStmt.expr));
+  }
+  throw new Error(
+    "Desurgar - Error interpreting Return Stmt: " + JSON.stringify(returnStmt)
   );
 }
 
@@ -48,7 +104,7 @@ function desugarExprStmt(exprStmt) {
     return new ExprStamt(desugarExpr(exprStmt.expr));
   }
   throw new Error(
-    "Desurgar - Error interpreting expr stmt: " + JSON.stringify(exprStmt)
+    "Desugar - Error interpreting expr stmt: " + JSON.stringify(exprStmt)
   );
 }
 
@@ -78,7 +134,7 @@ function desugarExpr(expr) {
           );
         default:
           throw new Error(
-            "Desurgar - Error invalid bin operator: " + JSON.stringify(op)
+            "Desugar - Error invalid bin operator: " + JSON.stringify(op)
           );
       }
     case "UnaryOp":
@@ -99,15 +155,17 @@ function desugarExpr(expr) {
           );
         default:
           throw new Error(
-            "Desurgar - Error invalid un operator: " + JSON.stringify(op)
+            "Desugar - Error invalid un operator: " + JSON.stringify(op)
           );
       }
+    case "Call":
+      return new Call(desugarExpr(expr.nameExpr), desugarExpr(expr.expr));
     case "Constant":
       return new Constant(expr.value, expr.kind);
+    case "NameExpr":
+      return new NameExpr(expr.name);
   }
-  throw new Error(
-    "Desurgar - Error interpreting expr: " + JSON.stringify(expr)
-  );
+  throw new Error("Desugar - Error interpreting expr: " + JSON.stringify(expr));
 }
 
 function desugarOperator(operator) {
@@ -123,7 +181,7 @@ function desugarOperator(operator) {
   }
 
   throw new Error(
-    "Desurgar - Error interpreting operator: " + JSON.stringify(operator)
+    "Desugar - Error interpreting operator: " + JSON.stringify(operator)
   );
 }
 
@@ -137,6 +195,6 @@ function desugarUnary(unaryOp) {
     }
   }
   throw new Error(
-    "Desurgar - Error interpreting unary op: " + JSON.stringify(unaryOp)
+    "Desugar - Error interpreting unary op: " + JSON.stringify(unaryOp)
   );
 }
