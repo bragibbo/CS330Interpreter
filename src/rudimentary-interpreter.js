@@ -70,6 +70,8 @@ function evalExpr(expr) {
       }
     case "Constant":
       return !isNaN(expr.value) ? Number(expr.value) : expr.value;
+    case "Call":
+      throw new Error('(error dynamic "unknown function")')
   }
   throw new Error(
     "RudInterp - Error interpreting expr: " + JSON.stringify(expr)

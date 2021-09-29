@@ -84,9 +84,7 @@ function substituteExpr(expr, fundef, id, replaceExpr) {
       const funIndex = fundef.findIndex((el) => el.name === funName);
 
       if (funIndex === -1) {
-        throw new Error(
-          "Substitute - Can't find parsed function def: " + JSON.stringify(expr)
-        );
+        throw new Error('(error dynamic "unknown function")');
       }
 
       return substituteExpr(
@@ -100,6 +98,8 @@ function substituteExpr(expr, fundef, id, replaceExpr) {
     case "NameExpr":
       if (id === expr.name) {
         return replaceExpr;
+      } else {
+        throw new Error('(error dynamic "unbound variable")')
       }
   }
   throw new Error(
