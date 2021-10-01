@@ -149,7 +149,7 @@ exports.ReturnStmt = ReturnStmt;
 class Call {
   constructor(nameExpr, expr) {
     this.nameExpr = nameExpr;
-    this.expr = expr;
+    this.args = expr;
   }
 }
 exports.Call = Call;

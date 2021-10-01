@@ -3,7 +3,6 @@ const { Desugar } = require("./desugar");
 const { PythonModuleParser } = require("./python-module-parser");
 const { RudimentaryInterpreter } = require("./rudimentary-interpreter");
 const { SExpressionParser } = require("./s-expr-parser");
-const { Substitute } = require("./substitute");
 const { TestRunner } = require("./tests/testRunner");
 
 function main() {
@@ -18,8 +17,7 @@ function main() {
     const parsedSExressionList = SExpressionParser(stringInput, 0, []);
     const surfaceAST = PythonModuleParser(parsedSExressionList);
     const coreAST = Desugar(surfaceAST);
-    const substitutedAST = Substitute(coreAST);
-    const answer = RudimentaryInterpreter(substitutedAST);
+    const answer = RudimentaryInterpreter(coreAST);
 
     console.log("\n" + answer);
   } catch (e) {

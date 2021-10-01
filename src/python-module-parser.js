@@ -130,11 +130,11 @@ function parseArguments(args) {
     args.listSExpr[0].value === "arguments" &&
     args.listSExpr[2].constructor.name === "SExprBracket" &&
     args.listSExpr[2].listSExpr.length === 2 &&
-    args.listSExpr[2].listSExpr[0].value === "args" &&
-    args.listSExpr[2].listSExpr[1].constructor.name === "SExprParen" &&
-    args.listSExpr[2].listSExpr[1].listSExpr.length === 1
+    args.listSExpr[2].listSExpr[0].value === "args"
   ) {
-    return new Arguments(parseArg(args.listSExpr[2].listSExpr[1].listSExpr[0]));
+    return new Arguments([
+      ...args.listSExpr[2].listSExpr[1].listSExpr.map((el) => parseArg(el)),
+    ]);
   }
   throw new Error("Unable to parse Arguments: " + args);
 }
@@ -262,10 +262,11 @@ function parseExpr(sExpr) {
           sExpr.listSExpr[2].listSExpr[0].value === "args" &&
           sExpr.listSExpr[2].listSExpr[1].constructor.name === "SExprParen"
         ) {
-          return new Call(
-            parseNameExpr(sExpr.listSExpr[1].listSExpr[1]),
-            parseExpr(sExpr.listSExpr[2].listSExpr[1].listSExpr[0])
-          );
+          return new Call(parseNameExpr(sExpr.listSExpr[1].listSExpr[1]), [
+            ...sExpr.listSExpr[2].listSExpr[1].listSExpr.map((el) =>
+              parseExpr(el)
+            ),
+          ]);
         }
         break;
 

@@ -2,7 +2,6 @@ const { Desugar } = require("../desugar");
 const { PythonModuleParser } = require("../python-module-parser");
 const { RudimentaryInterpreter } = require("../rudimentary-interpreter");
 const { SExpressionParser } = require("../s-expr-parser");
-const { Substitute } = require("../substitute");
 
 module.exports.RudimentaryInterpreterTests = () => {
   let failedTests = 0;
@@ -22,8 +21,7 @@ function testRudInterp(input, expected, numTest) {
   const parsed = SExpressionParser(input);
   const surfaceAST = PythonModuleParser(parsed);
   const coreAST = Desugar(surfaceAST);
-  const substitutedAST = Substitute(coreAST);
-  const answer = RudimentaryInterpreter(substitutedAST);
+  const answer = RudimentaryInterpreter(coreAST);
 
   console.log(`Returned: ${answer}`);
   console.log(`Expected: ${expected}`);
@@ -107,5 +105,15 @@ const tests = [
     input:
       '(Module [body ((FunctionDef [name "echo"] [args (arguments [posonlyargs ()] [args ((arg [arg "t"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Name [id "t"] [ctx (Load)])] [op (Add)] [right (Constant [value 1] [kind #f])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "other"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Call [func (Name [id "echo"] [ctx (Load)])] [args ((Name [id "x"] [ctx (Load)]))] [keywords ()])] [op (Add)] [right (Constant [value 1] [kind #f])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "nexts"] [args (arguments [posonlyargs ()] [args ((arg [arg "y"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Call [func (Name [id "other"] [ctx (Load)])] [args ((Name [id "y"] [ctx (Load)]))] [keywords ()])] [op (Add)] [right (Constant [value 1] [kind #f])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "nexts"] [ctx (Load)])] [args ((Constant [value 1] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
     expected: "(value 4)",
+  },
+  {
+    input:
+      '(Module [body ((FunctionDef [name "test"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]) (arg [arg "y"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Name [id "x"] [ctx (Load)])] [op (Add)] [right (Name [id "y"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "test"] [ctx (Load)])] [args ((Constant [value 4] [kind #f]) (Constant [value 5] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
+    expected: "(value 9)",
+  },
+  {
+    input:
+      '(Module [body ((FunctionDef [name "echo"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]) (arg [arg "y"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Name [id "x"] [ctx (Load)])] [op (Sub)] [right (Name [id "y"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "test"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Call [func (Name [id "echo"] [ctx (Load)])] [args ((Constant [value 5] [kind #f]) (Name [id "x"] [ctx (Load)]))] [keywords ()])] [op (Add)] [right (Constant [value 3] [kind #f])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "test"] [ctx (Load)])] [args ((Constant [value 6] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
+    expected: "(value 2)",
   },
 ];

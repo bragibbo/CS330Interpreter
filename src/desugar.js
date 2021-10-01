@@ -38,25 +38,21 @@ module.exports.Desugar = (ast) => {
     return new CoreAST(desugarModule(ast.module));
   }
 
-  throw new Error("Desugar - Error interpreting ast: " + JSON.stringify(ast));
+  throw new Error("Desugar - Error desugaring ast: " + JSON.stringify(ast));
 };
 
 function desugarModule(mod) {
   if (mod.constructor.name === "Module") {
     return new Module(desugarBody(mod.body));
   }
-  throw new Error(
-    "Desugar - Error interpreting module: " + JSON.stringify(mod)
-  );
+  throw new Error("Desugar - Error desugaring module: " + JSON.stringify(mod));
 }
 
 function desugarBody(mod) {
   if (mod.constructor.name === "Body") {
     return new Body(desugarExprStmt(mod.exprStmt), desugarFunDef(mod.fundef));
   }
-  throw new Error(
-    "Desugar - Error interpreting module: " + JSON.stringify(mod)
-  );
+  throw new Error("Desugar - Error desugaring module: " + JSON.stringify(mod));
 }
 
 function desugarFunDef(listFunDef) {
@@ -70,24 +66,19 @@ function desugarFunDef(listFunDef) {
     });
   }
   throw new Error(
-    "Desugar - Error interpreting Fun def: " + JSON.stringify(listFunDef)
+    "Desugar - Error desugaring Fun def: " + JSON.stringify(listFunDef)
   );
 }
 
 function desugarArguments(args) {
-  if (args.constructor.name === "Arguments") {
-    return new Arguments(desugarArg(args.args));
-  }
-  throw new Error(
-    "Desugar - Error interpreting Arguments: " + JSON.stringify(arguments)
-  );
+  return new Arguments([...args.args.map((el) => desugarArg(el))]);
 }
 
 function desugarArg(arg) {
   if (arg.constructor.name === "Arg") {
     return new Arg(arg.identifier);
   }
-  throw new Error("Desurgar - Error interpreting Arg: " + JSON.stringify(arg));
+  throw new Error("Desurgar - Error desugaring Arg: " + JSON.stringify(arg));
 }
 
 function desugarReturnStmt(returnStmt) {
@@ -95,7 +86,7 @@ function desugarReturnStmt(returnStmt) {
     return new ReturnStmt(desugarExpr(returnStmt.expr));
   }
   throw new Error(
-    "Desurgar - Error interpreting Return Stmt: " + JSON.stringify(returnStmt)
+    "Desurgar - Error desugaring Return Stmt: " + JSON.stringify(returnStmt)
   );
 }
 
@@ -104,7 +95,7 @@ function desugarExprStmt(exprStmt) {
     return new ExprStamt(desugarExpr(exprStmt.expr));
   }
   throw new Error(
-    "Desugar - Error interpreting expr stmt: " + JSON.stringify(exprStmt)
+    "Desugar - Error desugaring expr stmt: " + JSON.stringify(exprStmt)
   );
 }
 
@@ -159,13 +150,15 @@ function desugarExpr(expr) {
           );
       }
     case "Call":
-      return new Call(desugarExpr(expr.nameExpr), desugarExpr(expr.expr));
+      return new Call(desugarExpr(expr.nameExpr), [
+        ...expr.args.map((el) => desugarExpr(el)),
+      ]);
     case "Constant":
       return new Constant(expr.value, expr.kind);
     case "NameExpr":
       return new NameExpr(expr.name);
   }
-  throw new Error("Desugar - Error interpreting expr: " + JSON.stringify(expr));
+  throw new Error("Desugar - Error desugaring expr: " + JSON.stringify(expr));
 }
 
 function desugarOperator(operator) {
@@ -181,7 +174,7 @@ function desugarOperator(operator) {
   }
 
   throw new Error(
-    "Desugar - Error interpreting operator: " + JSON.stringify(operator)
+    "Desugar - Error desugaring operator: " + JSON.stringify(operator)
   );
 }
 
@@ -195,6 +188,6 @@ function desugarUnary(unaryOp) {
     }
   }
   throw new Error(
-    "Desugar - Error interpreting unary op: " + JSON.stringify(unaryOp)
+    "Desugar - Error desugaring unary op: " + JSON.stringify(unaryOp)
   );
 }

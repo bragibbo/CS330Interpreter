@@ -35,28 +35,28 @@ function evalModule(mod) {
 
 function evalBody(body) {
   if (body.constructor.name === "Body") {
-    return evalExprStmt(body.exprStmt);
+    return evalExprStmt(body.exprStmt, body.fundef);
   }
   throw new Error(
     "RudInterp - Error interpreting body: " + JSON.stringify(body)
   );
 }
 
-function evalExprStmt(exprStmt) {
+function evalExprStmt(exprStmt, fundefs) {
   if (exprStmt.constructor.name === "ExprStamt") {
-    return evalExpr(exprStmt.expr);
+    return evalExpr(exprStmt.expr, fundefs, {});
   }
   throw new Error(
     "RudInterp - Error interpreting expr stmt: " + JSON.stringify(exprStmt)
   );
 }
 
-function evalExpr(expr) {
+function evalExpr(expr, fundefs, env) {
   switch (expr.constructor.name) {
     case "BinOp":
-      const left = evalExpr(expr.left);
+      const left = evalExpr(expr.left, fundefs, env);
       const binOp = evalOperator(expr.op);
-      const right = evalExpr(expr.right);
+      const right = evalExpr(expr.right, fundefs, env);
 
       switch (binOp) {
         case "+":
@@ -68,10 +68,35 @@ function evalExpr(expr) {
             "RudInterp - Error invalid bin operator: " + JSON.stringify(op)
           );
       }
+    case "Call":
+      const funName = expr.nameExpr.name;
+      const funIndex = fundefs.findIndex((el) => el.name === funName);
+
+      if (funIndex === -1) {
+        throw new Error('(error dynamic "unknown function")');
+      }
+
+      return evalExpr(fundefs[funIndex].returnStmt.expr, fundefs, {
+        ...env,
+        ...fundefs[funIndex].arguments.args.reduce(
+          (o, arg, ind) => ({
+            ...o,
+            ...{
+              [arg.identifier]: evalExpr(expr.args[ind], fundefs, { ...env }),
+            },
+          }),
+          {}
+        ),
+      });
+
     case "Constant":
       return !isNaN(expr.value) ? Number(expr.value) : expr.value;
-    case "Call":
-      throw new Error('(error dynamic "unknown function")')
+    case "NameExpr":
+      if (env[expr.name]) {
+        return env[expr.name];
+      } else {
+        throw new Error('(error dynamic "unbound variable")');
+      }
   }
   throw new Error(
     "RudInterp - Error interpreting expr: " + JSON.stringify(expr)
