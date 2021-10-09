@@ -16,8 +16,13 @@ function testParser(input, expected, numTest) {
   const testName = `Parser ${numTest}`;
   console.log(`\nStart Test : ${testName}`);
 
-  const parsed = SExpressionParser(input);
-  const answer = JSON.stringify(PythonModuleParser(parsed));
+  let answer;
+  try {
+    const parsed = SExpressionParser(input);
+    answer = JSON.stringify(PythonModuleParser(parsed));
+  } catch (e) {
+    answer = e.message;
+  }
 
   console.log(`Returned: ${answer}`);
   console.log(`Expected: ${expected}`);

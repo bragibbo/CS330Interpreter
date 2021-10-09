@@ -76,8 +76,12 @@ function evalExpr(expr, fundefs, env) {
         throw new Error('(error dynamic "unknown function")');
       }
 
+      if (fundefs[funIndex].arguments.args.length !== expr.args.length) {
+        throw new Error('(error dynamic "arity mismatch")')
+      }
+
       return evalExpr(fundefs[funIndex].returnStmt.expr, fundefs, {
-        ...env,
+        // ...env,
         ...fundefs[funIndex].arguments.args.reduce(
           (o, arg, ind) => ({
             ...o,

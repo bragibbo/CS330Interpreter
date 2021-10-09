@@ -17,9 +17,14 @@ function testDesugar(input, expected, numTest) {
   const testName = `Desugar Parser ${numTest}`;
   console.log(`\nStart Test : ${testName}`);
 
-  const parsed = SExpressionParser(input);
-  const surfaceAST = PythonModuleParser(parsed);
-  const answer = JSON.stringify(Desugar(surfaceAST));
+  let answer;
+  try {
+    const parsed = SExpressionParser(input);
+    const surfaceAST = PythonModuleParser(parsed);
+    answer = JSON.stringify(Desugar(surfaceAST));
+  } catch (e) {
+    answer = e.message;
+  }
 
   console.log(`Returned: ${answer}`);
   console.log(`Expected: ${expected}`);
@@ -43,7 +48,8 @@ const tests = [
   {
     input:
       "(Module [body ((Expr [value (Constant [value 5] [kind #f])]))] [type_ignores ()])",
-    expected: '{"module":{"body":{"exprStmt":{"expr":{"value":"5","kind":"#f"}},"fundef":[]}}}',
+    expected:
+      '{"module":{"body":{"exprStmt":{"expr":{"value":"5","kind":"#f"}},"fundef":[]}}}',
   },
   {
     input:
@@ -94,7 +100,9 @@ const tests = [
       '{"module":{"body":{"exprStmt":{"expr":{"left":{"value":"5","kind":"#f"},"op":{"type":"Add"},"right":{"value":"hello","kind":"#f"}}},"fundef":[]}}}',
   },
   {
-    input: '(Module [body ((FunctionDef [name "test"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Name [id "x"] [ctx (Load)])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "test"] [ctx (Load)])] [args ((Constant [value 5] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
-    expected: '{"module":{"body":{"exprStmt":{"expr":{"nameExpr":{"name":"test"},"args":[{"value":"5","kind":"#f"}]}},"fundef":[{"name":"test","arguments":{"args":[{"identifier":"x"}]},"returnStmt":{"expr":{"name":"x"}}}]}}}'
-  }
+    input:
+      '(Module [body ((FunctionDef [name "test"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Name [id "x"] [ctx (Load)])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "test"] [ctx (Load)])] [args ((Constant [value 5] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
+    expected:
+      '{"module":{"body":{"exprStmt":{"expr":{"nameExpr":{"name":"test"},"args":[{"value":"5","kind":"#f"}]}},"fundef":[{"name":"test","arguments":{"args":[{"identifier":"x"}]},"returnStmt":{"expr":{"name":"x"}}}]}}}',
+  },
 ];
