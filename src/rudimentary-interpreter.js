@@ -22,7 +22,11 @@ const { Fundef } = require("./types");
 module.exports.RudimentaryInterpreter = (ast) => {
   if (ast.constructor.name === "CoreAST") {
     const answer = evalModule(ast.module);
-    return `(value ${answer})`;
+    if (typeof answer === "object" && answer.constructor.name === "Fundef") {
+      return `(value function)`;
+    } else {
+      return `(value ${answer})`;
+    }
   }
   throw new Error("RudInterp - Error interpreting ast: " + JSON.stringify(ast));
 };
@@ -185,7 +189,7 @@ const getFunToExecute = (funDefs, env, name) => {
     return env[name];
 
   if (env[name] && env[name][name]) return env[name][name];
-  if (env[name]) return env[name]
+  if (env[name]) return env[name];
 
   return funDefs.find((o) => o.name === name);
 };

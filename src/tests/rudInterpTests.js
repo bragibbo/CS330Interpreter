@@ -249,4 +249,13 @@ const tests = [
       '(Module [body ((FunctionDef [name "g"] [args (arguments [posonlyargs ()] [args ((arg [arg "g"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Name [id "g"] [ctx (Load)])] [op (Add)] [right (Constant [value 10] [kind #f])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "g"] [ctx (Load)])] [args ((Constant [value 20] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
     expected: "(value 30)",
   },
+  {
+    /*
+      def x():
+        return (lambda x: x)
+      x()
+    */
+    input: '(Module [body ((FunctionDef [name "x"] [args (arguments [posonlyargs ()] [args ()] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Lambda [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body (Name [id "x"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "x"] [ctx (Load)])] [args ()] [keywords ()])]))] [type_ignores ()])',
+    expected: '(value function)'
+  }
 ];
