@@ -14,6 +14,8 @@ const {
   ReturnStmt,
   NameExpr,
   Call,
+  Name,
+  Lambda,
 } = require("./types");
 
 // mod	 	      ::=	 	(Module [body (fundef ... expr_stmt)] [type_ignores ()])
@@ -61,6 +63,7 @@ function desugarFunDef(listFunDef) {
       return new Fundef(
         el.name,
         desugarArguments(el.arguments),
+        desugarFunDef(el.funDefs),
         desugarReturnStmt(el.returnStmt)
       );
     });
@@ -149,14 +152,18 @@ function desugarExpr(expr) {
             "Desugar - Error invalid un operator: " + JSON.stringify(op)
           );
       }
+
+    case "Lambda":
+      return new Lambda(desugarArguments(expr.args), desugarExpr(expr.body));
+
     case "Call":
-      return new Call(desugarExpr(expr.nameExpr), [
+      return new Call(desugarExpr(expr.func), [
         ...expr.args.map((el) => desugarExpr(el)),
       ]);
     case "Constant":
       return new Constant(expr.value, expr.kind);
-    case "NameExpr":
-      return new NameExpr(expr.name);
+    case "Name":
+      return new Name(expr.identifier);
   }
   throw new Error("Desugar - Error desugaring expr: " + JSON.stringify(expr));
 }

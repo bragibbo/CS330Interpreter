@@ -15,6 +15,9 @@
 //  	 	          |	 	(Sub)
 //  	 	          |	 	(Mult)
 // unaryop	 	  ::=	 	(UAdd)
+
+const { Fundef } = require("./types");
+
 //  	 	          |	 	(USub)
 module.exports.RudimentaryInterpreter = (ast) => {
   if (ast.constructor.name === "CoreAST") {
@@ -51,12 +54,16 @@ function evalExprStmt(exprStmt, fundefs) {
   );
 }
 
-function evalExpr(expr, fundefs, env) {
+function evalExpr(expr, topFunDefs, env) {
   switch (expr.constructor.name) {
     case "BinOp":
-      const left = evalExpr(expr.left, fundefs, env);
+      const left = evalExpr(expr.left, topFunDefs, env);
       const binOp = evalOperator(expr.op);
-      const right = evalExpr(expr.right, fundefs, env);
+      const right = evalExpr(expr.right, topFunDefs, env);
+
+      if (isNaN(left) || isNaN(right)) {
+        throw new Error('(error dynamic "not a number")');
+      }
 
       switch (binOp) {
         case "+":
@@ -68,36 +75,66 @@ function evalExpr(expr, fundefs, env) {
             "RudInterp - Error invalid bin operator: " + JSON.stringify(op)
           );
       }
-    case "Call":
-      const funName = expr.nameExpr.name;
-      const funIndex = fundefs.findIndex((el) => el.name === funName);
+    case "Lambda":
+      return new Fundef(null, expr.args, [], { expr: expr.body });
 
-      if (funIndex === -1) {
+    case "Call":
+      const funcToExecute = getFunToExecute(
+        topFunDefs,
+        env,
+        expr.func.identifier
+      );
+
+      if (funcToExecute === undefined) {
         throw new Error('(error dynamic "unknown function")');
       }
 
-      if (fundefs[funIndex].arguments.args.length !== expr.args.length) {
-        throw new Error('(error dynamic "arity mismatch")')
+      if (
+        typeof funcToExecute !== "object" &&
+        funcToExecute.constructor.name !== "FunDef"
+      ) {
+        throw new Error('(error dynamic "not a function")');
       }
 
-      return evalExpr(fundefs[funIndex].returnStmt.expr, fundefs, {
-        // ...env,
-        ...fundefs[funIndex].arguments.args.reduce(
-          (o, arg, ind) => ({
-            ...o,
-            ...{
-              [arg.identifier]: evalExpr(expr.args[ind], fundefs, { ...env }),
-            },
-          }),
-          {}
-        ),
-      });
+      if (funcToExecute.arguments.args.length !== expr.args.length) {
+        throw new Error('(error dynamic "arity mismatch")');
+      }
+
+      const funMap = getTopLevelFunDefsMap(topFunDefs, "@@@@");
+      const envMinusLambda = removeLambdaFromEnv(
+        { ...env, ...getTopLevelFunDefsMap(topFunDefs, expr.func.identifier) },
+        expr.func.identifier
+      );
+
+      const currentArgsMap = funcToExecute.arguments.args.reduce(
+        (o, arg, ind) => ({
+          ...o,
+          ...{
+            [arg.identifier]:
+              evalExpr(expr.args[ind], topFunDefs, {
+                ...envMinusLambda,
+                ...funMap,
+              }) || topFunDefs[expr.func.identifier],
+          },
+        }),
+        {}
+      );
+
+      return evalExpr(
+        funcToExecute.returnStmt.expr, // Return statement
+        getTopLevelArray(topFunDefs, funcToExecute.name), // All topLevel fun defs
+        createEnvironmentHelper(
+          funcToExecute,
+          { ...envMinusLambda, ...currentArgsMap },
+          0
+        )
+      );
 
     case "Constant":
       return !isNaN(expr.value) ? Number(expr.value) : expr.value;
-    case "NameExpr":
-      if (env[expr.name]) {
-        return env[expr.name];
+    case "Name":
+      if (env[expr.identifier]) {
+        return env[expr.identifier];
       } else {
         throw new Error('(error dynamic "unbound variable")');
       }
@@ -120,3 +157,61 @@ function evalOperator(operator) {
     "RudInterp - Error interpreting operator: " + JSON.stringify(operator)
   );
 }
+
+function createEnvironmentHelper(parentFun, env, index) {
+  if (index >= parentFun.funDefs.length) {
+    return env;
+  }
+
+  const newEnv = { ...createEnvironment(parentFun.funDefs[index], env) };
+
+  return createEnvironmentHelper(parentFun, { ...newEnv }, index + 1);
+}
+
+function createEnvironment(fundef, env) {
+  return {
+    ...env,
+    ...{
+      [fundef.name]: {
+        ...createEnvironmentHelper(fundef, env, 0),
+        ...{ [fundef.name]: fundef },
+      },
+    },
+  };
+}
+
+const getFunToExecute = (funDefs, env, name) => {
+  if (typeof env[name] === "object" && env[name].constructor.name === "Fundef")
+    return env[name];
+
+  if (env[name] && env[name][name]) return env[name][name];
+  if (env[name]) return env[name]
+
+  return funDefs.find((o) => o.name === name);
+};
+
+const removeLambdaFromEnv = (obj, prop) => {
+  let { [prop]: omit, ...res } = obj;
+  return res;
+};
+
+const getTopLevelArray = (fundefs, name) => {
+  const ind = fundefs.findIndex((o) => o.name === name);
+  if (ind !== -1) {
+    return fundefs.slice(0, ind + 1);
+  }
+  return fundefs;
+};
+
+const getTopLevelFunDefsMap = (fundefs, name) => {
+  let funs = getTopLevelArray(fundefs, name);
+  return funs.reduce(
+    (o, fun) => ({
+      ...o,
+      ...{
+        [fun.name]: fun,
+      },
+    }),
+    {}
+  );
+};

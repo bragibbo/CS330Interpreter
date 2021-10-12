@@ -117,9 +117,10 @@ class UnaryOperator {
 exports.UnaryOperator = UnaryOperator;
 
 class Fundef {
-  constructor(id, args, returnStmt) {
+  constructor(id, args, fundefs, returnStmt) {
     this.name = id;
     this.arguments = args;
+    this.funDefs = fundefs;
     this.returnStmt = returnStmt;
   }
 }
@@ -147,16 +148,24 @@ class ReturnStmt {
 exports.ReturnStmt = ReturnStmt;
 
 class Call {
-  constructor(nameExpr, expr) {
-    this.nameExpr = nameExpr;
-    this.args = expr;
+  constructor(expr, args) {
+    this.func = expr;
+    this.args = args;
   }
 }
 exports.Call = Call;
 
-class NameExpr {
-  constructor(name) {
-    this.name = name;
+class Lambda {
+  constructor(args, body) {
+    this.args = args;
+    this.body = body;
   }
 }
-exports.NameExpr = NameExpr;
+exports.Lambda = Lambda;
+
+class Name {
+  constructor(identifier) {
+    this.identifier = identifier;
+  }
+}
+exports.Name = Name;

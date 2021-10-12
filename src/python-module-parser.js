@@ -13,7 +13,8 @@ const {
   Arguments,
   Arg,
   Call,
-  NameExpr,
+  Name,
+  Lambda,
 } = require("./types");
 
 // Grammer:
@@ -109,12 +110,17 @@ function parseFunDef(funDef) {
     funDef.listSExpr[3].constructor.name === "SExprBracket" &&
     funDef.listSExpr[3].listSExpr[0].value === "body" &&
     funDef.listSExpr[3].listSExpr[0].constructor.name === "Atom" &&
-    funDef.listSExpr[3].listSExpr.length === 2
+    funDef.listSExpr[3].listSExpr.length === 2 &&
+    funDef.listSExpr[3].listSExpr[1].listSExpr.length >= 1
   ) {
+    const fundefLength = funDef.listSExpr[3].listSExpr[1].listSExpr.length;
     return new Fundef(
       funDef.listSExpr[1].listSExpr[1].value,
       parseArguments(funDef.listSExpr[2].listSExpr[1]),
-      parseReturnStmt(funDef.listSExpr[3].listSExpr[1].listSExpr[0])
+      [...parseFunDefHelper([], funDef.listSExpr[3].listSExpr[1].listSExpr, 0)],
+      parseReturnStmt(
+        funDef.listSExpr[3].listSExpr[1].listSExpr[fundefLength - 1]
+      )
     );
   } else if (funDef.listSExpr[0].value !== "FunctionDef") {
     return null;
@@ -192,6 +198,8 @@ function parseExprStmt(sExpr) {
 // expr	  ::=	 	(BinOp [left expr] [op operator] [right expr])
 //          |	 	(UnaryOp [op unaryop] [operand expr])
 //          |	 	(Constant [value int] [kind #f])
+//          |   (Lambda [args _arguments] [body expr])
+//          |   (Name [id identifier] [ctx (Load)])
 function parseExpr(sExpr) {
   if (sExpr.constructor.name === "SExprParen" && sExpr.listSExpr.length > 0) {
     switch (sExpr.listSExpr[0].value) {
@@ -252,6 +260,21 @@ function parseExpr(sExpr) {
         }
         break;
 
+      case "Lambda":
+        if (
+          sExpr.listSExpr.length === 3 &&
+          sExpr.listSExpr[1].listSExpr.length === 2 &&
+          sExpr.listSExpr[1].listSExpr[0].value === "args" &&
+          sExpr.listSExpr[2].listSExpr.length === 2 &&
+          sExpr.listSExpr[2].listSExpr[0].value === "body"
+        ) {
+          return new Lambda(
+            parseArguments(sExpr.listSExpr[1].listSExpr[1]),
+            parseExpr(sExpr.listSExpr[2].listSExpr[1])
+          );
+        }
+        break;
+
       case "Call":
         if (
           sExpr.listSExpr.length === 4 &&
@@ -262,7 +285,7 @@ function parseExpr(sExpr) {
           sExpr.listSExpr[2].listSExpr[0].value === "args" &&
           sExpr.listSExpr[2].listSExpr[1].constructor.name === "SExprParen"
         ) {
-          return new Call(parseNameExpr(sExpr.listSExpr[1].listSExpr[1]), [
+          return new Call(parseExpr(sExpr.listSExpr[1].listSExpr[1]), [
             ...sExpr.listSExpr[2].listSExpr[1].listSExpr.map((el) =>
               parseExpr(el)
             ),
@@ -271,26 +294,19 @@ function parseExpr(sExpr) {
         break;
 
       case "Name":
-        return parseNameExpr(sExpr);
+        if (
+          sExpr.listSExpr[0].value === "Name" &&
+          sExpr.listSExpr.length === 3 &&
+          sExpr.listSExpr[1].listSExpr.length === 2 &&
+          sExpr.listSExpr[1].listSExpr[0].value === "id"
+        ) {
+          return new Name(sExpr.listSExpr[1].listSExpr[1].value);
+        }
         break;
     }
   }
 
   throw new Error("Unable to parse Expr: " + sExpr);
-}
-
-// Grammer:
-// name_expr	 	::=	 	(Name [id identifier] [ctx (Load)])
-function parseNameExpr(nameExpr) {
-  if (
-    nameExpr.listSExpr[0].value === "Name" &&
-    nameExpr.listSExpr.length === 3 &&
-    nameExpr.listSExpr[1].listSExpr.length === 2 &&
-    nameExpr.listSExpr[1].listSExpr[0].value === "id"
-  ) {
-    return new NameExpr(nameExpr.listSExpr[1].listSExpr[1].value);
-  }
-  throw new Error("Unable to parse name expr: " + nameExpr);
 }
 
 // Grammer:

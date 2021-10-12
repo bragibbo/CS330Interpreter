@@ -77,6 +77,11 @@ const tests = [
     input:
       '(Module [body ((FunctionDef [name "test"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Name [id "x"] [ctx (Load)])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "test"] [ctx (Load)])] [args ((Constant [value 5] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
     expected:
-      '{"module":{"body":{"exprStmt":{"expr":{"nameExpr":{"name":"test"},"args":[{"value":"5","kind":"#f"}]}},"fundef":[{"name":"test","arguments":{"args":[{"identifier":"x"}]},"returnStmt":{"expr":{"name":"x"}}}]}}}',
+      '{"module":{"body":{"exprStmt":{"expr":{"func":{"identifier":"test"},"args":[{"value":"5","kind":"#f"}]}},"fundef":[{"name":"test","arguments":{"args":[{"identifier":"x"}]},"funDefs":[],"returnStmt":{"expr":{"identifier":"x"}}}]}}}',
+  },
+  {
+    input:
+      '(Module [body ((FunctionDef [name "f"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Name [id "x"] [ctx (Load)])] [op (Add)] [right (Constant [value 2] [kind #f])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "g"] [args (arguments [posonlyargs ()] [args ((arg [arg "f"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Call [func (Name [id "f"] [ctx (Load)])] [args ((Name [id "f"] [ctx (Load)]))] [keywords ()])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "g"] [ctx (Load)])] [args ((Constant [value 10] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
+    expected: '{"module":{"body":{"exprStmt":{"expr":{"func":{"identifier":"g"},"args":[{"value":"10","kind":"#f"}]}},"fundef":[{"name":"f","arguments":{"args":[{"identifier":"x"}]},"funDefs":[],"returnStmt":{"expr":{"left":{"identifier":"x"},"op":{"type":"Add"},"right":{"value":"2","kind":"#f"}}}},{"name":"g","arguments":{"args":[{"identifier":"f"}]},"funDefs":[],"returnStmt":{"expr":{"func":{"identifier":"f"},"args":[{"identifier":"f"}]}}}]}}}',
   },
 ];
