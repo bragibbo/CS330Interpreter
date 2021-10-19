@@ -143,7 +143,21 @@ const tests = [
     */
     input:
       '(Module [body ((FunctionDef [name "f"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Name [id "x"] [ctx (Load)])] [op (Add)] [right (Name [id "y"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "g"] [args (arguments [posonlyargs ()] [args ((arg [arg "y"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Call [func (Name [id "f"] [ctx (Load)])] [args ((Name [id "y"] [ctx (Load)]))] [keywords ()])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "g"] [ctx (Load)])] [args ((Constant [value 10] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
-    expected: '(value 20)',
+    expected: '(error dynamic "unbound variable")',
+  },
+  {
+    /*
+      def f(x):
+        return x + y
+      def t(r):
+        return r
+      def g(y):
+        return f(y)
+      g(10)
+    */
+    input:
+      '(Module [body ((FunctionDef [name "f"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Name [id "x"] [ctx (Load)])] [op (Add)] [right (Name [id "y"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "t"] [args (arguments [posonlyargs ()] [args ((arg [arg "r"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Name [id "r"] [ctx (Load)])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "g"] [args (arguments [posonlyargs ()] [args ((arg [arg "y"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Call [func (Name [id "f"] [ctx (Load)])] [args ((Name [id "y"] [ctx (Load)]))] [keywords ()])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "g"] [ctx (Load)])] [args ((Constant [value 10] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
+    expected: '(error dynamic "unbound variable")',
   },
   {
     input:
@@ -170,8 +184,9 @@ const tests = [
         return one() + two()
       outer(5)
     */
-    input: '(Module [body ((FunctionDef [name "outer"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((FunctionDef [name "one"] [args (arguments [posonlyargs ()] [args ()] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Name [id "x"] [ctx (Load)])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "two"] [args (arguments [posonlyargs ()] [args ()] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Call [func (Name [id "one"] [ctx (Load)])] [args ()] [keywords ()])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Return [value (BinOp [left (Call [func (Name [id "one"] [ctx (Load)])] [args ()] [keywords ()])] [op (Add)] [right (Call [func (Name [id "two"] [ctx (Load)])] [args ()] [keywords ()])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "outer"] [ctx (Load)])] [args ((Constant [value 5] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
-    expected: '(value 10)'
+    input:
+      '(Module [body ((FunctionDef [name "outer"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((FunctionDef [name "one"] [args (arguments [posonlyargs ()] [args ()] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Name [id "x"] [ctx (Load)])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "two"] [args (arguments [posonlyargs ()] [args ()] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Call [func (Name [id "one"] [ctx (Load)])] [args ()] [keywords ()])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Return [value (BinOp [left (Call [func (Name [id "one"] [ctx (Load)])] [args ()] [keywords ()])] [op (Add)] [right (Call [func (Name [id "two"] [ctx (Load)])] [args ()] [keywords ()])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "outer"] [ctx (Load)])] [args ((Constant [value 5] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
+    expected: "(value 10)",
   },
   {
     /*
@@ -255,7 +270,8 @@ const tests = [
         return (lambda x: x)
       x()
     */
-    input: '(Module [body ((FunctionDef [name "x"] [args (arguments [posonlyargs ()] [args ()] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Lambda [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body (Name [id "x"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "x"] [ctx (Load)])] [args ()] [keywords ()])]))] [type_ignores ()])',
-    expected: '(value function)'
-  }
+    input:
+      '(Module [body ((FunctionDef [name "x"] [args (arguments [posonlyargs ()] [args ()] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Lambda [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body (Name [id "x"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "x"] [ctx (Load)])] [args ()] [keywords ()])]))] [type_ignores ()])',
+    expected: "(value function)",
+  },
 ];

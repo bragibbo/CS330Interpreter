@@ -51,19 +51,21 @@ function evalBody(body) {
 
 function evalExprStmt(exprStmt, fundefs) {
   if (exprStmt.constructor.name === "ExprStamt") {
-    return evalExpr(exprStmt.expr, fundefs, {});
+    const startEnv = createEnvironmentHelper({ funDefs: fundefs }, {}, 0);
+
+    return evalExpr(exprStmt.expr, startEnv, {});
   }
   throw new Error(
     "RudInterp - Error interpreting expr stmt: " + JSON.stringify(exprStmt)
   );
 }
 
-function evalExpr(expr, topFunDefs, env) {
+function evalExpr(expr, env, store) {
   switch (expr.constructor.name) {
     case "BinOp":
-      const left = evalExpr(expr.left, topFunDefs, env);
+      const left = evalExpr(expr.left, env, store);
       const binOp = evalOperator(expr.op);
-      const right = evalExpr(expr.right, topFunDefs, env);
+      const right = evalExpr(expr.right, env, store);
 
       if (isNaN(left) || isNaN(right)) {
         throw new Error('(error dynamic "not a number")');
@@ -83,19 +85,16 @@ function evalExpr(expr, topFunDefs, env) {
       return new Fundef(null, expr.args, [], { expr: expr.body });
 
     case "Call":
-      const funcToExecute = getFunToExecute(
-        topFunDefs,
-        env,
-        expr.func.identifier
-      );
+      const funcToExecute = getFunToExecute(env, expr.func.identifier);
 
       if (funcToExecute === undefined) {
         throw new Error('(error dynamic "unknown function")');
       }
 
       if (
-        typeof funcToExecute !== "object" &&
-        funcToExecute.constructor.name !== "FunDef"
+        typeof funcToExecute !== "object" ||
+        (typeof funcToExecute === "object" &&
+          funcToExecute.constructor.name !== "Fundef")
       ) {
         throw new Error('(error dynamic "not a function")');
       }
@@ -104,9 +103,8 @@ function evalExpr(expr, topFunDefs, env) {
         throw new Error('(error dynamic "arity mismatch")');
       }
 
-      const funMap = getTopLevelFunDefsMap(topFunDefs, "@@@@");
       const envMinusLambda = removeLambdaFromEnv(
-        { ...env, ...getTopLevelFunDefsMap(topFunDefs, expr.func.identifier) },
+        { ...env },
         expr.func.identifier
       );
 
@@ -114,29 +112,35 @@ function evalExpr(expr, topFunDefs, env) {
         (o, arg, ind) => ({
           ...o,
           ...{
-            [arg.identifier]:
-              evalExpr(expr.args[ind], topFunDefs, {
-                ...envMinusLambda,
-                ...funMap,
-              }) || topFunDefs[expr.func.identifier],
+            [arg.identifier]: evalExpr(expr.args[ind], {
+              ...envMinusLambda,
+            }),
           },
         }),
         {}
       );
 
+      const { nextStore, nextArgs } = addArgsToStore(store, currentArgsMap);
+
       return evalExpr(
         funcToExecute.returnStmt.expr, // Return statement
-        getTopLevelArray(topFunDefs, funcToExecute.name), // All topLevel fun defs
         createEnvironmentHelper(
           funcToExecute,
-          { ...envMinusLambda, ...currentArgsMap },
+          { ...removeLambdaFromEnv(env[expr.func.identifier], expr.func.identifier), ...currentArgsMap },
           0
-        )
+        ),
+        nextStore
       );
 
     case "Constant":
       return !isNaN(expr.value) ? Number(expr.value) : expr.value;
     case "Name":
+      if (
+        typeof env[expr.identifier] === "object" &&
+        env[expr.identifier][expr.identifier] !== undefined &&
+        env[expr.identifier][expr.identifier].constructor.name === "Fundef"
+      )
+        return env[expr.identifier][expr.identifier];
       if (env[expr.identifier]) {
         return env[expr.identifier];
       } else {
@@ -168,7 +172,6 @@ function createEnvironmentHelper(parentFun, env, index) {
   }
 
   const newEnv = { ...createEnvironment(parentFun.funDefs[index], env) };
-
   return createEnvironmentHelper(parentFun, { ...newEnv }, index + 1);
 }
 
@@ -184,14 +187,14 @@ function createEnvironment(fundef, env) {
   };
 }
 
-const getFunToExecute = (funDefs, env, name) => {
+const getFunToExecute = (env, name) => {
   if (typeof env[name] === "object" && env[name].constructor.name === "Fundef")
     return env[name];
 
   if (env[name] && env[name][name]) return env[name][name];
   if (env[name]) return env[name];
 
-  return funDefs.find((o) => o.name === name);
+  return undefined;
 };
 
 const removeLambdaFromEnv = (obj, prop) => {
@@ -199,23 +202,6 @@ const removeLambdaFromEnv = (obj, prop) => {
   return res;
 };
 
-const getTopLevelArray = (fundefs, name) => {
-  const ind = fundefs.findIndex((o) => o.name === name);
-  if (ind !== -1) {
-    return fundefs.slice(0, ind + 1);
-  }
-  return fundefs;
-};
-
-const getTopLevelFunDefsMap = (fundefs, name) => {
-  let funs = getTopLevelArray(fundefs, name);
-  return funs.reduce(
-    (o, fun) => ({
-      ...o,
-      ...{
-        [fun.name]: fun,
-      },
-    }),
-    {}
-  );
-};
+function addArgsToStore(oldStore, newArgs) {
+  return { nextStore: {}, nextArgs: {} };
+}

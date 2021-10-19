@@ -169,3 +169,10 @@ class Name {
   }
 }
 exports.Name = Name;
+
+class Store {
+  constructor(store) {
+    this.store = store;
+  }
+}
+exports.Store = Store;
