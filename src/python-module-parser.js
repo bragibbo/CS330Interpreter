@@ -114,7 +114,7 @@ function parseFunDef(funDef) {
     funDef.listSExpr[3].listSExpr[1].listSExpr.length >= 1
   ) {
     const fundefLength = funDef.listSExpr[3].listSExpr[1].listSExpr.length;
-    return new Fundef(
+    const fundefs = new Fundef(
       funDef.listSExpr[1].listSExpr[1].value,
       parseArguments(funDef.listSExpr[2].listSExpr[1]),
       [...parseFunDefHelper([], funDef.listSExpr[3].listSExpr[1].listSExpr, 0)],
@@ -122,6 +122,19 @@ function parseFunDef(funDef) {
         funDef.listSExpr[3].listSExpr[1].listSExpr[fundefLength - 1]
       )
     );
+
+    fundefs.arguments.args.ma;
+    const duplicates = fundefs.arguments.args.filter(
+      (item, index) =>
+        fundefs.arguments.args.findIndex(
+          (el) => el.identifier === item.identifier
+        ) !== index
+    );
+    if (duplicates.length) {
+      throw new Error('(error static "duplicate parameter")');
+    }
+
+    return fundefs;
   } else if (funDef.listSExpr[0].value !== "FunctionDef") {
     return null;
   }

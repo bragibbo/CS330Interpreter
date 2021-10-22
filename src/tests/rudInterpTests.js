@@ -131,7 +131,7 @@ const tests = [
     */
     input:
       '(Module [body ((FunctionDef [name "g"] [args (arguments [posonlyargs ()] [args ((arg [arg "y"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Call [func (Name [id "f"] [ctx (Load)])] [args ((Name [id "y"] [ctx (Load)]))] [keywords ()])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "f"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Name [id "x"] [ctx (Load)])] [op (Add)] [right (Name [id "y"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "g"] [ctx (Load)])] [args ((Constant [value 10] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
-    expected: '(error dynamic "unknown function")',
+    expected: '(error dynamic "unbound identifier")',
   },
   {
     /*
@@ -162,7 +162,7 @@ const tests = [
   {
     input:
       '(Module [body ((Expr [value (Call [func (Name [id "test"] [ctx (Load)])] [args ((Constant [value 3] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
-    expected: '(error dynamic "unknown function")',
+    expected: '(error dynamic "unbound identifier")',
   },
   {
     input:
@@ -274,4 +274,102 @@ const tests = [
       '(Module [body ((FunctionDef [name "x"] [args (arguments [posonlyargs ()] [args ()] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Lambda [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body (Name [id "x"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "x"] [ctx (Load)])] [args ()] [keywords ()])]))] [type_ignores ()])',
     expected: "(value function)",
   },
+  {
+    /*
+      def f():
+        return 42
+
+      f()
+    */
+    input: '(Module [body ((FunctionDef [name "f"] [args (arguments [posonlyargs ()] [args ()] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Constant [value 42] [kind #f])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "f"] [ctx (Load)])] [args ()] [keywords ()])]))] [type_ignores ()])',
+    expected: '(value 42)'
+  },
+  {
+    /*
+      def g(x,y):
+        return x + y
+
+      g(20,g(1,2))
+    */
+    input: '(Module [body ((FunctionDef [name "g"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]) (arg [arg "y"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Name [id "x"] [ctx (Load)])] [op (Add)] [right (Name [id "y"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "g"] [ctx (Load)])] [args ((Constant [value 20] [kind #f]) (Call [func (Name [id "g"] [ctx (Load)])] [args ((Constant [value 1] [kind #f]) (Constant [value 2] [kind #f]))] [keywords ()]))] [keywords ()])]))] [type_ignores ()])',
+    expected: '(value 23)'
+  },
+  {
+    /*
+      def f(x):
+        return 3 + x
+      def d(x,x):
+        return x + x
+
+      d(20,2)
+    */
+    input: '(Module [body ((FunctionDef [name "f"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Constant [value 3] [kind #f])] [op (Add)] [right (Name [id "x"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "d"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]) (arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Name [id "x"] [ctx (Load)])] [op (Add)] [right (Name [id "x"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "d"] [ctx (Load)])] [args ((Constant [value 20] [kind #f]) (Constant [value 2] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
+    expected: '(error static "duplicate parameter")'
+  },
+  {
+    /*
+      38()
+    */
+    input: '(Module [body ((Expr [value (Call [func (Constant [value 38] [kind #f])] [args ()] [keywords ()])]))] [type_ignores ()])',
+    expected: '(error dynamic "not a function")'
+  },
+  {
+    /*
+      def myfunc(n):
+        return lambda a : a * n
+      myfunc(2)
+    */
+    input: '(Module [body ((FunctionDef [name "myfunc"] [args (arguments [posonlyargs ()] [args ((arg [arg "n"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Lambda [args (arguments [posonlyargs ()] [args ((arg [arg "a"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body (BinOp [left (Name [id "a"] [ctx (Load)])] [op (Mult)] [right (Name [id "n"] [ctx (Load)])])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "myfunc"] [ctx (Load)])] [args ((Constant [value 2] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
+    expected: '(value function)'
+  },
+  {
+    /*
+      (lambda a : a + 3)(2)
+    */
+    input: '(Module [body ((Expr [value (Call [func (Lambda [args (arguments [posonlyargs ()] [args ((arg [arg "a"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body (BinOp [left (Name [id "a"] [ctx (Load)])] [op (Add)] [right (Constant [value 3] [kind #f])])])] [args ((Constant [value 2] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
+    expected: '(value 5)'
+  },
+  {
+    /*
+      def myfunc(n):
+        return lambda a : a * n
+      (myfunc(2))(3)
+    */
+    input: '(Module [body ((FunctionDef [name "myfunc"] [args (arguments [posonlyargs ()] [args ((arg [arg "n"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Lambda [args (arguments [posonlyargs ()] [args ((arg [arg "a"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body (BinOp [left (Name [id "a"] [ctx (Load)])] [op (Mult)] [right (Name [id "n"] [ctx (Load)])])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Call [func (Name [id "myfunc"] [ctx (Load)])] [args ((Constant [value 2] [kind #f]))] [keywords ()])] [args ((Constant [value 3] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
+    expected: '(value 6)'
+  },
+  {
+    /*
+      def myfunc(n):
+        return n
+      (myfunc(2))(3)
+    */
+    input: '(Module [body ((FunctionDef [name "myfunc"] [args (arguments [posonlyargs ()] [args ((arg [arg "n"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Name [id "n"] [ctx (Load)])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Call [func (Name [id "myfunc"] [ctx (Load)])] [args ((Constant [value 2] [kind #f]))] [keywords ()])] [args ((Constant [value 3] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
+    expected: '(error dynamic "not a function")'
+  },
+  {
+    /*
+      def early(x):
+        def inner():
+          return 1
+        return x
+        
+      def outer():
+        return inner()
+        
+      outer()
+    */
+    input: '(Module [body ((FunctionDef [name "early"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((FunctionDef [name "inner"] [args (arguments [posonlyargs ()] [args ()] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Constant [value 1] [kind #f])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Return [value (Name [id "x"] [ctx (Load)])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "outer"] [args (arguments [posonlyargs ()] [args ()] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Call [func (Name [id "inner"] [ctx (Load)])] [args ()] [keywords ()])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "outer"] [ctx (Load)])] [args ()] [keywords ()])]))] [type_ignores ()])',
+    expected: '(error dynamic "unbound identifier")'
+  },
+  {
+    /*
+      def test():
+        return 1
+        
+      test()()
+    */
+    input: '(Module [body ((FunctionDef [name "test"] [args (arguments [posonlyargs ()] [args ()] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (Constant [value 1] [kind #f])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Call [func (Name [id "test"] [ctx (Load)])] [args ()] [keywords ()])] [args ()] [keywords ()])]))] [type_ignores ()])',
+    expected: '(error dynamic "not a function")'
+  }
 ];
