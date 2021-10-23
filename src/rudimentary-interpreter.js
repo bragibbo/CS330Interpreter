@@ -23,12 +23,14 @@ module.exports.RudimentaryInterpreter = (ast) => {
   if (ast.constructor.name === "CoreAST") {
     const answer = evalModule(ast.module);
     if (
-      (typeof answer === "object" && answer.constructor.name === "Fundef") ||
-      (answer.lambda && answer.lambda.constructor.name === "Fundef")
+      (answer.result && answer.result.constructor.name === "Fundef") ||
+      (answer.result &&
+        answer.result.lambda &&
+        answer.newStore[answer.result.lambda].constructor.name === "Fundef")
     ) {
       return `(value function)`;
-    } else {
-      return `(value ${answer})`;
+    } else if (answer.result) {
+      return `(value ${answer.result})`;
     }
   }
   throw new Error("RudInterp - Error interpreting ast: " + JSON.stringify(ast));
@@ -54,9 +56,14 @@ function evalBody(body) {
 
 function evalExprStmt(exprStmt, fundefs) {
   if (exprStmt.constructor.name === "ExprStamt") {
-    const startEnv = createEnvironmentHelper({ funDefs: fundefs }, {}, 0);
+    const { newEnv, newStore } = createEnvironmentHelper(
+      { funDefs: fundefs },
+      {},
+      {},
+      0
+    );
 
-    return evalExpr(exprStmt.expr, startEnv, {});
+    return evalExpr(exprStmt.expr, newEnv, newStore);
   }
   throw new Error(
     "RudInterp - Error interpreting expr stmt: " + JSON.stringify(exprStmt)
@@ -69,15 +76,15 @@ function evalExpr(expr, env, store, isArg = false) {
       const left = evalExpr(expr.left, env, store);
       const right = evalExpr(expr.right, env, store);
 
-      if (isNaN(left) || isNaN(right)) {
+      if (isNaN(left.result) || isNaN(right.result)) {
         throw new Error('(error dynamic "not a number")');
       }
 
       switch (expr.op.type) {
         case "Add":
-          return left + right;
+          return { result: left.result + right.result, newStore: { ...store } };
         case "Mult":
-          return left * right;
+          return { result: left.result * right.result, newStore: { ...store } };
         default:
           throw new Error(
             "RudInterp - Error invalid bin operator: " + JSON.stringify(op)
@@ -85,12 +92,20 @@ function evalExpr(expr, env, store, isArg = false) {
       }
     case "Lambda":
       if (isArg) {
-        return new Fundef(null, expr.args, [], { expr: expr.body });
+        return {
+          result: new Fundef(null, expr.args, [], { expr: expr.body }),
+        };
       }
 
       return {
-        lambda: new Fundef(null, expr.args, [], { expr: expr.body }),
-        ...env,
+        result: {
+          lambda: "lambda",
+          ...env,
+        },
+        newStore: {
+          ...store,
+          lambda: new Fundef(null, expr.args, [], { expr: expr.body }),
+        },
       };
 
     case "Call":
@@ -103,12 +118,12 @@ function evalExpr(expr, env, store, isArg = false) {
         throw new Error('(error dynamic "not a function")');
       }
 
-      const updatedEnv =
-        expr.func.constructor.name === "Call" ||
-        expr.func.constructor.name === "Lambda"
-          ? { ...env, lambda: evalExpr(expr.func, env, store) }
-          : { ...env };
-      const funcToExecute = getFunToExecute(updatedEnv, expr.func.identifier);
+      const { updatedEnv, updatedStore } = evaluateLambda(expr, env, store);
+      const funcToExecute = getFunToExecute(
+        updatedEnv,
+        updatedStore,
+        expr.func.identifier
+      );
 
       if (funcToExecute === undefined) {
         throw new Error('(error dynamic "unbound identifier")');
@@ -126,51 +141,52 @@ function evalExpr(expr, env, store, isArg = false) {
         throw new Error('(error dynamic "arity mismatch")');
       }
 
-      const currentArgsMap = funcToExecute.arguments.args.reduce(
-        (o, arg, ind) => ({
-          ...o,
-          ...{
-            [arg.identifier]: evalExpr(
-              expr.args[ind],
-              {
-                ...updatedEnv,
-              },
-              store,
-              true
-            ),
-          },
-        }),
-        {}
+      const { nextArgsEnv, nextArgsStore } = evalArgsHelper(
+        funcToExecute.arguments.args,
+        expr,
+        updatedEnv,
+        updatedStore
       );
 
-      const funcEnv = updatedEnv[expr.func.identifier] || updatedEnv.lambda;
+      const funcEnv = updatedEnv[expr.func.identifier] || updatedEnv;
       const envMinusFuncDef = {
         ...removeLambdaFromEnv(funcEnv, expr.func.identifier || "lambda"),
       };
 
-      const nextEnvDefs = createEnvironmentHelper(funcToExecute, {}, 0);
-      const nextEnv = {
-        ...mergeEnvsHelper(nextEnvDefs, currentArgsMap),
-        ...currentArgsMap,
-      };
+      const { newEnv, newStore } = createEnvironmentHelper(
+        funcToExecute,
+        {},
+        {},
+        0
+      );
 
-      const { nextStore, nextArgs } = addArgsToStore(store, currentArgsMap);
+      const nextStore = { ...nextArgsStore, ...newStore };
+      const nextEnv = {
+        ...mergeEnvsHelper(newEnv, nextArgsEnv),
+        ...nextArgsEnv,
+      };
 
       return evalExpr(
         funcToExecute.returnStmt.expr, // Return statement
         { ...envMinusFuncDef, ...nextEnv },
-        nextStore
+        { ...nextStore }
       );
 
     case "Constant":
-      return !isNaN(expr.value) ? Number(expr.value) : expr.value;
+      return {
+        result: !isNaN(expr.value) ? Number(expr.value) : expr.value,
+        newStore: { ...store },
+      };
     case "Name":
       // The first one allows us to get functions
       // The second allows for values
       if (env[expr.identifier] && env[expr.identifier][expr.identifier]) {
-        return env[expr.identifier][expr.identifier];
+        return {
+          result: store[env[expr.identifier][expr.identifier]],
+          newStore: { ...store },
+        };
       } else if (env[expr.identifier]) {
-        return env[expr.identifier];
+        return { result: store[env[expr.identifier]], newStore: { ...store } };
       } else {
         throw new Error('(error dynamic "unbound variable")');
       }
@@ -180,24 +196,92 @@ function evalExpr(expr, env, store, isArg = false) {
   );
 }
 
-function createEnvironmentHelper(parentFun, env, index) {
-  if (index >= parentFun.funDefs.length) {
-    return env;
+function evaluateLambda(expr, env, store) {
+  if (
+    expr.func.constructor.name === "Call" ||
+    expr.func.constructor.name === "Lambda"
+  ) {
+    const { result, newStore } = evalExpr(expr.func, env, store);
+    if (typeof result !== "object") {
+      throw new Error('(error dynamic "not a function")');
+    }
+
+    const nextStore = { ...newStore, ...store };
+    return {
+      updatedEnv: { ...result, ...env },
+      updatedStore: { ...nextStore },
+    };
   }
 
-  const newEnv = { ...createEnvironment(parentFun.funDefs[index], env) };
-  return createEnvironmentHelper(parentFun, { ...newEnv }, index + 1);
+  return { updatedEnv: { ...env }, updatedStore: { ...store } };
 }
 
-function createEnvironment(fundef, env) {
-  return {
+// Evaluate Arguments and return the map of args with the updated store
+function evalArgsHelper(args, expr, env, store) {
+  if (!args.length) {
+    return { nextArgsEnv: {}, nextArgsStore: { ...store } };
+  }
+
+  return evalArgs(args, expr, env, store, {}, {}, 0);
+}
+
+function evalArgs(args, expr, env, store, curEnv, curStore, index) {
+  if (index >= args.length) {
+    return {
+      nextArgsEnv: { ...curEnv },
+      nextArgsStore: { ...store, ...curStore },
+    };
+  }
+
+  const { result } = evalExpr(expr.args[index], { ...env }, { ...store }, true);
+
+  // const address = parseInt(Math.random() * 1000000000);
+  const nextStore = { ...curStore, [args[index].identifier]: result };
+  const newEnv = {
+    ...curEnv,
+    [args[index].identifier]: args[index].identifier,
+  };
+
+  return evalArgs(args, expr, env, store, newEnv, nextStore, index + 1);
+}
+
+// Create nested functions from function defs
+// Returns nested function defs and store mappings
+function createEnvironmentHelper(parentFun, env, store, index) {
+  if (index >= parentFun.funDefs.length) {
+    return { newEnv: { ...env }, newStore: { ...store } };
+  }
+
+  const { newEnv, newStore } = createEnvironment(
+    parentFun.funDefs[index],
+    env,
+    store
+  );
+
+  return createEnvironmentHelper(
+    parentFun,
+    { ...newEnv },
+    { ...newStore },
+    index + 1
+  );
+}
+
+function createEnvironment(fundef, env, store) {
+  const { newEnv, newStore } = createEnvironmentHelper(fundef, env, store, 0);
+
+  // const address = parseInt(Math.random() * 1000000000);
+  const nextEnv = {
     ...env,
     ...{
-      [fundef.name]: {
-        ...createEnvironmentHelper(fundef, env, 0),
-        ...{ [fundef.name]: fundef },
-      },
+      [fundef.name]: { ...newEnv, ...{ [fundef.name]: fundef.name } },
     },
+  };
+
+  const nextStore = { ...newStore, [fundef.name]: fundef };
+
+  return {
+    newEnv: { ...nextEnv },
+    newStore: { ...nextStore },
   };
 }
 
@@ -228,12 +312,12 @@ function determineMergeEnvs(keys, env, args, index) {
   return { ...env, ...args };
 }
 
-const getFunToExecute = (env, name) => {
-  if (env[name] && env[name][name]) return env[name][name];
-  if (env[name]) return env[name];
+const getFunToExecute = (env, store, name) => {
+  if (env[name] && env[name][name]) return store[env[name][name]];
+  if (env[name]) return store[env[name]];
 
-  if (env.lambda && env.lambda.lambda) return env.lambda.lambda;
-  if (env.lambda) return env.lambda;
+  if (env.lambda && env.lambda.lambda) return store["lambda"];
+  if (env.lambda) return store["lambda"];
 
   return undefined;
 };
@@ -242,7 +326,3 @@ const removeLambdaFromEnv = (obj, prop) => {
   let { [prop]: omit, ...res } = obj;
   return res;
 };
-
-function addArgsToStore(oldStore, newArgs) {
-  return { nextStore: {}, nextArgs: {} };
-}

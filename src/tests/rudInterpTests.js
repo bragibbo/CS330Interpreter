@@ -117,6 +117,13 @@ const tests = [
     expected: "(value 9)",
   },
   {
+    /*
+      def echo(x, y):
+        return x - y	
+      def test(x):
+        return echo(5, x) + 3	
+      test(6)
+    */
     input:
       '(Module [body ((FunctionDef [name "echo"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]) (arg [arg "y"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Name [id "x"] [ctx (Load)])] [op (Sub)] [right (Name [id "y"] [ctx (Load)])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (FunctionDef [name "test"] [args (arguments [posonlyargs ()] [args ((arg [arg "x"] [annotation #f] [type_comment #f]))] [vararg #f] [kwonlyargs ()] [kw_defaults ()] [kwarg #f] [defaults ()])] [body ((Return [value (BinOp [left (Call [func (Name [id "echo"] [ctx (Load)])] [args ((Constant [value 5] [kind #f]) (Name [id "x"] [ctx (Load)]))] [keywords ()])] [op (Add)] [right (Constant [value 3] [kind #f])])]))] [decorator_list ()] [returns #f] [type_comment #f]) (Expr [value (Call [func (Name [id "test"] [ctx (Load)])] [args ((Constant [value 6] [kind #f]))] [keywords ()])]))] [type_ignores ()])',
     expected: "(value 2)",
